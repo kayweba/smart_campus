@@ -1,0 +1,7 @@
+{
+    "database_path": "D:/Learning/SARFTI/begunov_avtomatizaciya/db/SmartCampus.sqlite",
+    "update_interval": 1,
+    "update_column_name": "value",
+    "min_random_value": 180.0,
+    "max_random_value": 230.0
+}
