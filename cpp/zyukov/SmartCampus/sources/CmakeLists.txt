@@ -1,0 +1,37 @@
+set (TARGET SmartCampusMain)
+
+message("CXX compiler: " ${CMAKE_CXX_COMPILER_ID} " (" ${CMAKE_CXX_COMPILER_VERSION} ")")
+
+find_package(Qt5 COMPONENTS Core Widgets Gui Sql REQUIRED)
+IF (NOT Qt5_FOUND)
+	message(FATAL_ERROR "Не найден пакет Qt5. Пожалуйста, установить Qt5 сначала или установите переменную окружения QTDIR.")
+ELSE()
+	message(STATUS "Пакет Qt5 найден.")
+ENDIF()
+
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_BUILD_TYPE "RelWithDebInfo")
+
+set(SOURCES 
+	${CMAKE_CURRENT_SOURCE_DIR}/stdafx.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/Application.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/DbManager.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/DbData.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/ElectricalSensor.cpp
+)
+qt5_wrap_ui(SOURCES mainwindow.ui electricalsensor.ui)
+add_executable(${TARGET}
+	${SOURCES}
+)
+
+target_include_directories(${TARGET} PRIVATE
+	${CMAKE_SOURCE_DIR}/include
+)
+
+target_link_libraries(${TARGET} PUBLIC
+	Qt5::Core
+	Qt5::Widgets
+	Qt5::Gui
+	Qt5::Sql
+)
