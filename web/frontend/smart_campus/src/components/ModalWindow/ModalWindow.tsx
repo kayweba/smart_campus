@@ -1,8 +1,10 @@
-import { Divider, List, ListItem, Modal, Typography } from '@mui/material'
+import { List, ListItem, Modal, Typography } from '@mui/material'
 import { Box } from '@mui/system'
-import React, { CSSProperties } from 'react'
+import React from 'react'
 import { RoomsElectrical } from '../../models/SmartKampusModel'
 import { Power, EmojiObjects, EmojiObjectsOutlined, PowerOutlined } from '@mui/icons-material';
+
+import styles from './ModalWindow.module.css'
 
 type ModalWindowProps = {
     onClose: () => void,
@@ -17,40 +19,22 @@ type ModalWindowState = {}
 export class ModalWindow extends React.Component<ModalWindowProps, ModalWindowState> {
 
     public render(): React.ReactNode {
-        // TODO: Перенести стили в отдельные файлы
-        const style = {
-            position: 'absolute' as 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            minWidth: 400,
-            bgcolor: 'background.paper',
-            border: '2px solid #000',
-            boxShadow: 24,
-            p: 4,
-        };
-
-        const heaaderStyle = {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-        } as CSSProperties
 
         const getItem = (descriprion: string, state: number = 1) => {
             switch (descriprion) {
                 case 'Розетки':
-                    return <div style={heaaderStyle}>
+                    return <div className={styles.header}>
                         {
                             state === 1
-                            ? <Power style={{ color: '#0652FF' }} />
-                            : <PowerOutlined />
+                                ? <Power style={{ color: '#0652FF' }} />
+                                : <PowerOutlined />
                         }
                         <Typography style={{ marginTop: '2px', marginLeft: '2px' }}>
                             Розетки
                         </Typography>
                     </div>
                 case 'Свет':
-                    return <div style={heaaderStyle}>
+                    return <div className={styles.header}>
                         {
                             state === 1
                                 ? <EmojiObjects style={{ color: '#FFCF48' }} />
@@ -72,8 +56,8 @@ export class ModalWindow extends React.Component<ModalWindowProps, ModalWindowSt
                 aria-labelledby="modal-modal-title"
                 aria-describedby="modal-modal-description"
             >
-                <Box sx={style}>
-                    <h2 style={{ color: '#686868' }}> {this.props.roomName} </h2>
+                <Box className={styles.modalWindowWrapper}>
+                    <p style={{ color: '#686868', fontSize: '18px', fontWeight: 'bold' }}> {this.props.roomName} </p>
                     {
                         this.props.data.map(item =>
                             <Box key={item.name} sx={{ border: '1px solid #272727' }}>
@@ -94,7 +78,6 @@ export class ModalWindow extends React.Component<ModalWindowProps, ModalWindowSt
                                         </ListItem>
                                     </Box>
                                 </List>
-                                {/* <Divider /> */}
                             </Box>
                         )
                     }

@@ -4,8 +4,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 import sqlite3
 import os
+import json
 
 app = FastAPI()
+database = r"D:/Learning/SARFTI/begunov_avtomatizaciya/web/db/SmartCampus.sqlite"
 
 origins = [
     "http://localhost:3000",
@@ -25,9 +27,6 @@ app.add_middleware(
 @app.get("/")
 async def root():
     return {"message": "Hello world"}
-
-database = r'D:\Learning\SARFTI\begunov_avtomatizaciya\db\SmartCampus.sqlite'
-
 
 @app.get("/getRoomsData")
 async def get_rooms_data():
