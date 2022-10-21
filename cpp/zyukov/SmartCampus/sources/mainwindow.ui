@@ -55,14 +55,20 @@
     <property name="title">
      <string>База данных</string>
     </property>
-    <addaction name="action"/>
+    <addaction name="startGenerationButton"/>
+    <addaction name="stopGenerationButton"/>
    </widget>
    <addaction name="menu"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <action name="action">
+  <action name="startGenerationButton">
    <property name="text">
     <string>Запустить генератор</string>
+   </property>
+  </action>
+  <action name="stopGenerationButton">
+   <property name="text">
+    <string>Остановить  генератор</string>
    </property>
   </action>
  </widget>

@@ -23,5 +23,6 @@ namespace SmartCampus {
 			bool dbState;
 			QString m_dbType;
 			ApplicationPtr m_ptrApplication;
+			mutable boost::mutex m_selfProtectionMutex;
 	};
 }

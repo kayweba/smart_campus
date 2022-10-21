@@ -32,6 +32,7 @@ namespace SmartCampus {
 
 	QVector<Database::DbElectricalSensorPtr> DBManager::GetElectricalSensors() const
 	{
+		boost::mutex::scoped_lock lock(m_selfProtectionMutex);
 		QVector<Database::DbElectricalSensorPtr> result = {};
 		if (!IsOpened())
 		{
@@ -64,6 +65,7 @@ namespace SmartCampus {
 
 	void DBManager::UpdateElectricalSensor(const Database::DbElectricalSensor& sensor)
 	{
+		boost::mutex::scoped_lock lock(m_selfProtectionMutex);
 		if (!IsOpened())
 		{
 			//База неоткрыта
@@ -106,6 +108,7 @@ namespace SmartCampus {
 
 	QVector<Database::DbRoomPtr> DBManager::GetRooms() const
 	{
+		boost::mutex::scoped_lock lock(m_selfProtectionMutex);
 		QVector<Database::DbRoomPtr> result = {};
 		if (!IsOpened())
 		{
@@ -138,6 +141,7 @@ namespace SmartCampus {
 
 	QVector<Database::DbElectricalSensorTypePtr> DBManager::GetElectricalSensorTypes() const
 	{
+		boost::mutex::scoped_lock lock(m_selfProtectionMutex);
 		QVector<Database::DbElectricalSensorTypePtr> result = {};
 		if (!IsOpened())
 		{

@@ -1,6 +1,50 @@
 cmake_minimum_required( VERSION 3.15 )
-project( SmartCampus )
+project( SmartCampus CXX)
 
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR})
+list(APPEND CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR})
+
+function(PrintList Header Prop TRG)
+    IF ("${TRG}" STREQUAL "")
+		get_property(dirs DIRECTORY PROPERTY ${Prop})
+	ELSE()
+		get_target_property(dirs ${TRG} ${Prop})
+	ENDIF()
+	message("\n${Header}")
+	foreach(dir ${dirs})
+		message("    ${dir}")
+	endforeach()
+endfunction()
+
+
+MESSAGE(STATUS "CMAKE_BUILD_TYPE=" ${CMAKE_BUILD_TYPE})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+MESSAGE(STATUS "CMAKE_BINARY_DIR=" ${CMAKE_BINARY_DIR})
+
+IF (NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
+	MESSAGE(STATUS "Не найдена файл conan.cmake в бинарной директории. Автоматическое скачивание conan.cmake по адресу https://github.com/conan-io/cmake-conan")
+	FILE(DOWNLOAD "https://raw.githubusercontent.com/conan-io/cmake-conan/0.18.1/conan.cmake"
+                "${CMAKE_BINARY_DIR}/conan.cmake"
+                TLS_VERIFY ON)
+ENDIF()
+
+INCLUDE(${CMAKE_BINARY_DIR}/conan.cmake)
+
+MESSAGE(STATUS "Скачивание conan-пакета Boost/1.80.0 из репозитория conan-center")
+
+conan_cmake_configure(REQUIRES boost/1.80.0
+			GENERATORS cmake_find_package
+#			IMPORTS  "bin, *.dll -> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+#			IMPORTS  "lib, *.dylib -> ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}"
+			OPTIONS boost:shared=False)
+conan_cmake_autodetect(settings)
+conan_cmake_install(PATH_OR_REFERENCE ${CMAKE_BINARY_DIR}
+			REMOTE conancenter
+			SETTINGS ${settings})
+
+FIND_PACKAGE(Boost)
 message ("QTDIR is " $ENV{QTDIR})
 IF ("$ENV{QTDIR}" STREQUAL "")
 	message(FATAL_ERROR "Не задана переменная окружения QTDIR")
@@ -10,12 +54,16 @@ set(CMAKE_PREFIX_PATH $ENV{QTDIR}/lib/cmake/Qt5)
 
 message("Prefix path: " ${CMAKE_PREFIX_PATH})
 
-include_directories(include)
-link_directories(lib)
+include_directories(include ${Boost_INCLUDE_DIRS})
+link_directories(lib ${Boost_LIB_DIRS})
+
+PrintList("Include directories:" INCLUDE_DIRECTORIES "")
+message("")
+PrintList("Link directories:" LINK_DIRECTORIES "")
+message("")
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 add_subdirectory(sources)
-
 

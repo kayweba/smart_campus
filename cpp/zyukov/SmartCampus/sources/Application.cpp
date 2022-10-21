@@ -1,6 +1,7 @@
 #include <Application.h>
 #include <DbManager.h>
 #include <ElectricalSensor.h>
+#include <DbValueGenerator.h>
 
 namespace SmartCampus {
 
@@ -9,10 +10,14 @@ namespace SmartCampus {
 		this->setWindowFlags(Qt::Widget | Qt::MSWindowsFixedSizeDialogHint);
 		ui->setupUi(this);
 		this->setBaseSize(QSize(width, height));
+		connect(ui->startGenerationButton, &QAction::triggered, this, &Application::OnStartGeneratorClicked);
+		connect(ui->stopGenerationButton, &QAction::triggered, this, &Application::OnStopGeneratorClicked);
 		m_width = width;
 		m_height = height;
 		ui->statusbar->showMessage(QString::fromLocal8Bit("Программа запущена"));
 		ConnectToDb("QSQLITE");
+		generator = Database::ValueGeneratorPtr(new Database::ValueGenerator(database, "settings.json"));
+		generator->ConnectErrorSignal(boost::bind(&Application::OnGeneratorEmitsErrorSignal, this));
 		this->show();
 	}
 
@@ -29,6 +34,11 @@ namespace SmartCampus {
 	void Application::ConnectToDb(const QString& dbType)
 	{
 		database = DbManagerPtr(new DBManager(dbType, ApplicationPtr(this)));
+	}
+
+	void Application::OnGeneratorEmitsErrorSignal()
+	{
+		UpdateStatus(QString::fromLocal8Bit(generator->GetLastError().c_str()));
 	}
 
 	void Application::LoadData()
@@ -99,6 +109,16 @@ namespace SmartCampus {
 			}
 		}
 		UpdateStatus(QString::fromLocal8Bit("Количество датчиков: %1. Количество комнат: %2").arg(sensorsUi.size()).arg(roomsUi.size()));
+	}
+
+	void Application::OnStartGeneratorClicked()
+	{
+		generator->Start();
+	}
+
+	void Application::OnStopGeneratorClicked()
+	{
+		generator->Stop();
 	}
 
 	void  Application::showEvent(QShowEvent* event)

@@ -19,6 +19,7 @@ set(SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/DbManager.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/DbData.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/ElectricalSensor.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/DbValueGenerator.cpp
 )
 qt5_wrap_ui(SOURCES mainwindow.ui electricalsensor.ui)
 add_executable(${TARGET}
@@ -34,4 +35,10 @@ target_link_libraries(${TARGET} PUBLIC
 	Qt5::Widgets
 	Qt5::Gui
 	Qt5::Sql
+	Boost::filesystem
+	Boost::chrono
+	Boost::thread
 )
+
+MESSAGE(STATUS "Settings cmakeRC to 0")
+SET (ENV{cmake_RC} 0)

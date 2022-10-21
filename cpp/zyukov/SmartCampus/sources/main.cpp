@@ -4,6 +4,7 @@
 
 int main(int argc, char ** argv)
 {
+	srand(time(NULL));
 	QTextCodec::setCodecForLocale(QTextCodec::codecForName("Windows-1251"));
 	QApplication app(argc, argv);
 	SmartCampus::Application * window = new SmartCampus::Application(1920, 1080);

@@ -13,10 +13,13 @@ class Application : public QMainWindow {
 		~Application();
 		void UpdateStatus(const QString & status);
 		void ConnectToDb(const QString & dbType);
-
+		void OnGeneratorEmitsErrorSignal();
 		void LoadData();
 		void UpdateUi();
-	protected:
+	public slots:
+		void OnStartGeneratorClicked();
+		void OnStopGeneratorClicked();
+protected:
 		void showEvent(QShowEvent* event) override;
 		void closeEvent(QCloseEvent* event) override;
 	private:
@@ -25,6 +28,7 @@ class Application : public QMainWindow {
 		Ui::MainWindow* ui;
 		QVector<SmartCampus::ElectricalSensorPtr> sensorsUi;
 		DbManagerPtr database;
+		Database::ValueGeneratorPtr generator;
 		int m_width;
 		int m_height;
 		QTimer m_timer;
