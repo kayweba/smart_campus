@@ -34,6 +34,7 @@ INCLUDE(${CMAKE_BINARY_DIR}/conan.cmake)
 
 MESSAGE(STATUS "Скачивание conan-пакета Boost/1.80.0 из репозитория conan-center")
 
+### Качаем Boost 1.80.0 ###
 conan_cmake_configure(REQUIRES boost/1.80.0
 			GENERATORS cmake_find_package
 #			IMPORTS  "bin, *.dll -> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
@@ -44,18 +45,29 @@ conan_cmake_install(PATH_OR_REFERENCE ${CMAKE_BINARY_DIR}
 			REMOTE conancenter
 			SETTINGS ${settings})
 
+### Качаем Qt 5.15.2 ###
+conan_cmake_configure(REQUIRES qt/5.15.2
+			GENERATORS cmake_find_package
+			IMPORTS  "bin, *.dll -> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+			OPTIONS qt:shared=True)
+conan_cmake_install(PATH_OR_REFERENCE ${CMAKE_BINARY_DIR}
+			REMOTE conancenter
+			SETTINGS ${settings})
+
 FIND_PACKAGE(Boost)
-message ("QTDIR is " $ENV{QTDIR})
-IF ("$ENV{QTDIR}" STREQUAL "")
-	message(FATAL_ERROR "Не задана переменная окружения QTDIR")
-	exit()
-ENDIF()
-set(CMAKE_PREFIX_PATH $ENV{QTDIR}/lib/cmake/Qt5)
+FIND_PACKAGE(Qt5)
+#message ("
+#QTDIR is " $ENV{QTDIR})
+#IF ("$ENV{QTDIR}" STREQUAL "")
+#	message(FATAL_ERROR "Не задана переменная окружения QTDIR")
+#	exit()
+#ENDIF()
+#set(CMAKE_PREFIX_PATH $ENV{QTDIR}/lib/cmake/Qt5)
 
 message("Prefix path: " ${CMAKE_PREFIX_PATH})
 
-include_directories(include ${Boost_INCLUDE_DIRS})
-link_directories(lib ${Boost_LIB_DIRS})
+include_directories(include ${Boost_INCLUDE_DIRS} ${Qt5_INCLUDE_DIRS})
+link_directories(lib ${Boost_LIB_DIRS} ${Qt5_LIB_DIRS})
 
 PrintList("Include directories:" INCLUDE_DIRECTORIES "")
 message("")
@@ -66,4 +78,3 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 add_subdirectory(sources)
-

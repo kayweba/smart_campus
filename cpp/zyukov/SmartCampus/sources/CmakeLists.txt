@@ -2,15 +2,7 @@ set (TARGET SmartCampusMain)
 
 message("CXX compiler: " ${CMAKE_CXX_COMPILER_ID} " (" ${CMAKE_CXX_COMPILER_VERSION} ")")
 
-find_package(Qt5 COMPONENTS Core Widgets Gui Sql REQUIRED)
-IF (NOT Qt5_FOUND)
-	message(FATAL_ERROR "Не найден пакет Qt5. Пожалуйста, установить Qt5 сначала или установите переменную окружения QTDIR.")
-ELSE()
-	message(STATUS "Пакет Qt5 найден.")
-ENDIF()
-
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 
 set(SOURCES 
 	${CMAKE_CURRENT_SOURCE_DIR}/stdafx.cpp
