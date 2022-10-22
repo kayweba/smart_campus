@@ -1,8 +1,7 @@
-cmake_minimum_required( VERSION 3.15 )
+cmake_minimum_required( VERSION 3.10 )
 project( SmartCampus CXX)
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR})
-list(APPEND CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR})
+list(APPEND CMAKE_PREFIX_PATH $ENV{QTDIR}/lib/cmake/Qt5)
 
 function(PrintList Header Prop TRG)
     IF ("${TRG}" STREQUAL "")
@@ -16,58 +15,34 @@ function(PrintList Header Prop TRG)
 	endforeach()
 endfunction()
 
+# Download automatically, you can also just copy the conan.cmake file
+if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
+   message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
+   file(DOWNLOAD "https://raw.githubusercontent.com/conan-io/cmake-conan/master/conan.cmake"
+                  "${CMAKE_BINARY_DIR}/conan.cmake")
+endif()
+include(${CMAKE_BINARY_DIR}/conan.cmake)
+conan_add_remote(NAME conancenter
+		INDEX 0
+		URL https://center.conan.io
+		VERIFY_SLL True)
 
-MESSAGE(STATUS "CMAKE_BUILD_TYPE=" ${CMAKE_BUILD_TYPE})
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-MESSAGE(STATUS "CMAKE_BINARY_DIR=" ${CMAKE_BINARY_DIR})
+conan_cmake_run(REQUIRES boost/1.80.0
+		OPTIONS boost:shared=False
+                BASIC_SETUP)
 
-IF (NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
-	MESSAGE(STATUS "Не найдена файл conan.cmake в бинарной директории. Автоматическое скачивание conan.cmake по адресу https://github.com/conan-io/cmake-conan")
-	FILE(DOWNLOAD "https://raw.githubusercontent.com/conan-io/cmake-conan/0.18.1/conan.cmake"
-                "${CMAKE_BINARY_DIR}/conan.cmake"
-                TLS_VERIFY ON)
+message ("QTDIR is " $ENV{QTDIR})
+IF ("$ENV{QTDIR}" STREQUAL "")
+	message(FATAL_ERROR "Не задана переменная окружения QTDIR")
+	exit()
 ENDIF()
-
-INCLUDE(${CMAKE_BINARY_DIR}/conan.cmake)
-
-MESSAGE(STATUS "Скачивание conan-пакета Boost/1.80.0 из репозитория conan-center")
-
-### Качаем Boost 1.80.0 ###
-conan_cmake_configure(REQUIRES boost/1.80.0
-			GENERATORS cmake_find_package
-#			IMPORTS  "bin, *.dll -> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
-#			IMPORTS  "lib, *.dylib -> ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}"
-			OPTIONS boost:shared=False)
-conan_cmake_autodetect(settings)
-conan_cmake_install(PATH_OR_REFERENCE ${CMAKE_BINARY_DIR}
-			REMOTE conancenter
-			SETTINGS ${settings})
-
-### Качаем Qt 5.15.2 ###
-conan_cmake_configure(REQUIRES qt/5.15.2
-			GENERATORS cmake_find_package
-			IMPORTS  "bin, *.dll -> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
-			OPTIONS qt:shared=True)
-conan_cmake_install(PATH_OR_REFERENCE ${CMAKE_BINARY_DIR}
-			REMOTE conancenter
-			SETTINGS ${settings})
-
-FIND_PACKAGE(Boost)
-FIND_PACKAGE(Qt5)
-#message ("
-#QTDIR is " $ENV{QTDIR})
-#IF ("$ENV{QTDIR}" STREQUAL "")
-#	message(FATAL_ERROR "Не задана переменная окружения QTDIR")
-#	exit()
-#ENDIF()
-#set(CMAKE_PREFIX_PATH $ENV{QTDIR}/lib/cmake/Qt5)
 
 message("Prefix path: " ${CMAKE_PREFIX_PATH})
 
-include_directories(include ${Boost_INCLUDE_DIRS} ${Qt5_INCLUDE_DIRS})
-link_directories(lib ${Boost_LIB_DIRS} ${Qt5_LIB_DIRS})
+FIND_PACKAGE(Qt5 REQUIRED COMPONENTS Widgets Gui Core Sql)
+include_directories(include)
+link_directories(lib)
+link_libraries(${CONAN_LIBS})
 
 PrintList("Include directories:" INCLUDE_DIRECTORIES "")
 message("")
@@ -78,3 +53,4 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 add_subdirectory(sources)
+

@@ -33,15 +33,15 @@ GOTO next_parm
 
 :end_parms
 
-Rem set QTDIR=C:\Qt\Qt5.9.9\5.9.9\msvc2017_64
+set QTDIR=C:\Qt\Qt5.9.9\5.9.9\msvc2017_64
 if exist build (
 	echo Deleting build directory first.
 	rmdir /S /Q build
 ) else (
 	echo There is no build directory. Nothing to delete.
 )
-echo +++ cmake -S ./ -B ./build  -D CMAKE_BUILD_TYPE="%BUILD_TYPE%" -D CMAKE_BINARY_DIR=./build
-cmake -S ./ -B ./build  -D CMAKE_BUILD_TYPE="%BUILD_TYPE%" -D CMAKE_BINARY_DIR=./build
+echo +++ cmake -S . -B ./build
+cmake -S . -B ./build -DCMAKE_BUILD_TYPE=%BUILD_TYPE%
 IF NOT %ERRORLEVEL% == 0 (
 	echo.
 	echo ***** Ошибки при выполнении cmake -S . -B ./build ... *****
@@ -58,12 +58,10 @@ set DEBUG=
 IF "%BUILD_TYPE%" == "Debug" (
 	set DEBUG="d"
 )
-	xcopy /DICYQ .\build\bin\Qt5Core%DEBUG%.dll .\build\bin\%BUILD_TYPE% >nul
-	xcopy /DICYQ .\build\bin\Qt5Sql%DEBUG%.dll .\build\bin\%BUILD_TYPE% >nul
-	xcopy /DICYQ .\build\bin\Qt5Widgets%DEBUG%.dll .\build\bin\%BUILD_TYPE% >nul
-	xcopy /DICYQ .\build\bin\Qt5Gui%DEBUG%.dll .\build\bin\%BUILD_TYPE% >nul
-	xcopy /DICYQ .\build\bin\archdatadir\plugins\platforms\ .\build\bin\%BUILD_TYPE%\platforms >nul
-	xcopy /DICYQ .\build\bin\archdatadir\plugins\sqldrivers\ .\build\bin\%BUILD_TYPE%\sqldrivers >nul
-	xcopy /DICYQ .\db\korpus_1.db .\build\bin\%BUILD_TYPE% >nul
-	xcopy /DICYQ .\db\settings.json .\build\bin\%BUILD_TYPE% >nul
+	xcopy /DICYQ %QTDIR%\bin\Qt5Core%DEBUG%.dll .\build\bin >nul
+	xcopy /DICYQ %QTDIR%\bin\Qt5Sql%DEBUG%.dll .\build\bin >nul
+	xcopy /DICYQ %QTDIR%\bin\Qt5Widgets%DEBUG%.dll .\build\bin >nul
+	xcopy /DICYQ %QTDIR%\bin\Qt5Gui%DEBUG%.dll .\build\bin >nul
+	xcopy /DICYQ .\db\korpus_1.db .\build\bin >nul
+	xcopy /DICYQ .\db\settings.json .\build\bin >nul
 :endend

@@ -1,5 +1,5 @@
 #include <Application.h>
-#include <DbManager.h>
+#include <DBManager.h>
 #include <ElectricalSensor.h>
 #include <DbValueGenerator.h>
 

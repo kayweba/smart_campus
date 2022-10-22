@@ -1,7 +1,6 @@
 set (TARGET SmartCampusMain)
 
 message("CXX compiler: " ${CMAKE_CXX_COMPILER_ID} " (" ${CMAKE_CXX_COMPILER_VERSION} ")")
-
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set(SOURCES 
@@ -23,14 +22,14 @@ target_include_directories(${TARGET} PRIVATE
 )
 
 target_link_libraries(${TARGET} PUBLIC
-	Qt5::Core
 	Qt5::Widgets
+	Qt5::Core
 	Qt5::Gui
 	Qt5::Sql
-	Boost::filesystem
-	Boost::chrono
-	Boost::thread
 )
+IF (NOT WIN32)
+    target_link_libraries(${TARGET} PUBLIC
+	dl
+    )
+ENDIF()
 
-MESSAGE(STATUS "Settings cmakeRC to 0")
-SET (ENV{cmake_RC} 0)

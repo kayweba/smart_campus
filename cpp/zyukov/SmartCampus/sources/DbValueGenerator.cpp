@@ -1,5 +1,5 @@
 #include <DbValueGenerator.h>
-#include <DbManager.h>
+#include <DBManager.h>
 
 namespace SmartCampus {
 	namespace Database {
@@ -65,7 +65,7 @@ namespace SmartCampus {
 				while (1) {
 					if (m_internalState == StateType::SUCCESS) {
 						boost::this_thread::sleep_until(boost::chrono::steady_clock::now() + boost::chrono::milliseconds(m_updateInfo.updatingIntervalMs));
-						auto& sensors = m_ptrDatabaseManager->GetElectricalSensors();
+						auto sensors = m_ptrDatabaseManager->GetElectricalSensors();
 						for (auto& sensor : sensors) {
 							sensor->SetValue(std::rand() % m_updateInfo.maxValue);
 							sensor->SetState(std::rand() % 2 > 0 ? true : false);
