@@ -1,4 +1,7 @@
 
+export type RoomsSet = Array<Rooms>
+export type RoomsElectricalSet = Array<RoomsElectrical>
+
 export type Rooms = {
     id: number,
     name: string,

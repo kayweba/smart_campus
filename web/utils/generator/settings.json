@@ -1,5 +1,5 @@
 {
-    "database_path": "D:/Learning/SARFTI/begunov_avtomatizaciya/db/SmartCampus.sqlite",
+    "database_path": "D:/Learning/SARFTI/begunov_smart_campus/smart_campus/web/db/SmartCampus.sqlite",
     "update_interval": 1,
     "update_column_name": "value",
     "min_random_value": 180.0,

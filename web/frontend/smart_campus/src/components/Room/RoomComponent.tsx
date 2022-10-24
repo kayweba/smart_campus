@@ -1,16 +1,19 @@
 import React from 'react'
 import { Box, Button, Card, CardContent, Divider, Typography } from '@mui/material'
 
-import './Room.css'
 import { ModalWindow } from '../ModalWindow/ModalWindow'
 import { ElectricalService } from '../../services/ElectricalService/ElectricalService'
 import { RoomsElectrical } from '../../models/SmartKampusModel'
 import { StatusColorComponent } from '../StatusColor/StatusColorComponent'
 
+import styles from './Room.module.css'
+import ReportContext from '../ReportProvider/ReportProvider'
+
 type RoomComponentProps = {
     name: string,
     electricalSensorsCount: number,
-    id: number
+    id: number,
+    setErrorFlag: (flag: boolean) => void
 }
 
 type RoomComponentState = {
@@ -21,6 +24,9 @@ type RoomComponentState = {
 
 
 export class RoomComponent extends React.Component<RoomComponentProps, RoomComponentState> {
+    // Typescript может определить тип конкеста таким образом
+    static contextType = ReportContext
+    context!: React.ContextType<typeof ReportContext>
 
     state = {
         modalOpen: false,
@@ -34,23 +40,32 @@ export class RoomComponent extends React.Component<RoomComponentProps, RoomCompo
 
     updateData = () => setInterval(async () => {
         const data: Array<RoomsElectrical> = await new ElectricalService().getRoomsElectricalSensorsData(this.props.id)
-        let status = ''
 
-        data.forEach(item => {
+        const { setRoomsElectricalValue } = this.context
+
+        if (data.length === 0) {
+            this.props.setErrorFlag(true)
+        } else {
+            let status = ''
+            this.props.setErrorFlag(false)
+
+            data.forEach(item => {
                 if (item.value < 210 || item.value > 220) {
                     status = 'WARNING'
+                    setRoomsElectricalValue(data)
                 } else {
                     status = 'SUCCESS'
                 }
             }
-        )
+            )
 
-        this.setState({
-            modalData: data,
-            status: status
-        })
+            this.setState({
+                modalData: data,
+                status: status
+            })
+        }
 
-    }, 1500)
+    }, 2000)
 
     public render(): React.ReactNode {
         const { name, electricalSensorsCount } = this.props
@@ -69,25 +84,26 @@ export class RoomComponent extends React.Component<RoomComponentProps, RoomCompo
 
         return (
             <>
-                <Card className='card_style'>
+                <Card className={styles.card_style}>
                     <CardContent>
-                        <Typography variant='h5' component='div'>
+                        <Typography variant='h6' component='div'>
                             {name}
                         </Typography>
                         <Divider />
-                        <Typography style={{ marginTop: '16px' }} className={'sensors_amount'} component='div'>
+                        <Typography sx={{ marginTop: '16px' }} component='div'>
                             Количество датчиков в комнате: {electricalSensorsCount}
                         </Typography>
-                        <div>
-                        Статус: <span><StatusColorComponent type={this.state.status} style={{ position: 'fixed', marginTop: '6px', marginLeft: '10px' }} /></span>
-                        </div> 
+                        <div style={{ marginTop: '6px' }}>
+                            Статус: <span><StatusColorComponent type={this.state.status} style={{ position: 'absolute', marginTop: '7px', marginLeft: '10px' }} /></span>
+                        </div>
                         <Box>
-                            <Button variant='contained' sx={{ marginTop: '24px' }} onClick={() => handleClick()}>Подробнее</Button>
+                            <Button size='small' variant='contained' sx={{ marginTop: '24px' }} onClick={() => handleClick()}>Подробнее</Button>
                         </Box>
                     </CardContent>
                 </Card>
 
                 <ModalWindow roomName={name} modalOpen={this.state.modalOpen} onClose={handleClose} data={this.state.modalData} />
+
             </>
         )
     }

@@ -1,0 +1,21 @@
+.card_style {
+    max-width: '350px';
+    max-height: '250px'
+}
+
+.status_style {
+    margin-top: '16px';
+    display: 'flex';
+    align-items: 'center'
+}
+
+.modal {
+    position: 'absolute';
+    top: '50%';
+    left: '50%';
+    transform: 'translate(-50%, -50%)';
+    width: 400;
+    border: '2px solid #000';
+    box-shadow: 24;
+    padding: 4;
+}

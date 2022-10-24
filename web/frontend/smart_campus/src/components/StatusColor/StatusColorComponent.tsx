@@ -1,6 +1,5 @@
 import { Box } from '@mui/system'
 import React, { CSSProperties } from 'react'
-import { StatusType } from '../../models/Statuses'
 
 type StatusColorComponentProps = {
     type: string
