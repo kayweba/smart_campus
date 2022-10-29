@@ -7,13 +7,13 @@ import { RoomsElectrical } from '../../models/SmartKampusModel'
 import { StatusColorComponent } from '../StatusColor/StatusColorComponent'
 
 import styles from './Room.module.css'
-import ReportContext from '../ReportProvider/ReportProvider'
 
 type RoomComponentProps = {
     name: string,
     electricalSensorsCount: number,
     id: number,
-    setErrorFlag: (flag: boolean) => void
+    setErrorFlag: (flag: boolean) => void,
+    updateErrorsNumber: () => void
 }
 
 type RoomComponentState = {
@@ -22,11 +22,8 @@ type RoomComponentState = {
     status: string
 }
 
-
 export class RoomComponent extends React.Component<RoomComponentProps, RoomComponentState> {
     // Typescript может определить тип конкеста таким образом
-    static contextType = ReportContext
-    context!: React.ContextType<typeof ReportContext>
 
     state = {
         modalOpen: false,
@@ -40,32 +37,27 @@ export class RoomComponent extends React.Component<RoomComponentProps, RoomCompo
 
     updateData = () => setInterval(async () => {
         const data: Array<RoomsElectrical> = await new ElectricalService().getRoomsElectricalSensorsData(this.props.id)
+        let status = 'SUCCESS'
 
-        const { setRoomsElectricalValue } = this.context
+        console.log(data);
+        
 
-        if (data.length === 0) {
-            this.props.setErrorFlag(true)
-        } else {
-            let status = ''
-            this.props.setErrorFlag(false)
-
-            data.forEach(item => {
-                if (item.value < 210 || item.value > 220) {
-                    status = 'WARNING'
-                    setRoomsElectricalValue(data)
-                } else {
-                    status = 'SUCCESS'
-                }
+        data.forEach(item => {
+            if ((item.value < 180.5) || (item.value > 229.6)) {
+                status = 'WARNING'
             }
-            )
-
-            this.setState({
-                modalData: data,
-                status: status
-            })
         }
+        )
+        if (status === 'WARNING') {
+            this.props.updateErrorsNumber()
+        } 
 
-    }, 2000)
+        this.setState({
+            modalData: data,
+            status: status
+        })
+
+    }, 1500)
 
     public render(): React.ReactNode {
         const { name, electricalSensorsCount } = this.props

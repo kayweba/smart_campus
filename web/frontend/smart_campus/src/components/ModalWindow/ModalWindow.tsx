@@ -20,6 +20,8 @@ export class ModalWindow extends React.Component<ModalWindowProps, ModalWindowSt
 
     public render(): React.ReactNode {
 
+        console.log(this.props.data)
+
         const getItem = (descriprion: string, state: number = 1) => {
             switch (descriprion) {
                 case 'Розетки':

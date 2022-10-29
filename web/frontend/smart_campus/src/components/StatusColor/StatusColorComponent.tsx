@@ -29,9 +29,9 @@ export class StatusColorComponent extends React.Component<StatusColorComponentPr
     private getStatusColor(type: string): React.ReactNode {
         switch (type) {
             case 'WARNING':
-                return <Box className="normal_status_style" component="span" sx={this.normalStatusStyle} />
+                return <Box component="span" sx={this.errorStatusStyle} />
             case 'SUCCESS':
-                return <Box className="error_status_style" component="span" sx={this.errorStatusStyle} />
+                return <Box component="span" sx={this.normalStatusStyle} />
             default:
                 break;
         }
