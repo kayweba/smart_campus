@@ -33,7 +33,7 @@ GOTO next_parm
 
 :end_parms
 
-set QTDIR=C:\Qt\Qt5.9.9\5.9.9\msvc2017_64
+set QTDIR=C:\Qt\5.9.2\msvc2017_64
 if exist build (
 	echo Deleting build directory first.
 	rmdir /S /Q build

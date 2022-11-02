@@ -16,6 +16,7 @@ namespace SmartCampus {
 			void UpdateElectricalSensor(const Database::DbElectricalSensor & sensor);
 			QVector<Database::DbRoomPtr> GetRooms() const;
 			QVector<Database::DbElectricalSensorTypePtr> GetElectricalSensorTypes() const;
+			QVector<Database::DbBuildingPtr> GetBuildings() const;
 			bool IsOpened() const; 
 			QString GetDbType() const;
 		protected:

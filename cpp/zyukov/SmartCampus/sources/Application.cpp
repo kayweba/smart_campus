@@ -43,19 +43,22 @@ namespace SmartCampus {
 
 	void Application::LoadData()
 	{
-		auto sensorTypes = database->GetElectricalSensorTypes();
-		auto sensors = database->GetElectricalSensors();
-		auto rooms = database->GetRooms();
+		ClearData();
+		m_sensorTypes = database->GetElectricalSensorTypes();
+		m_electricalSensors = database->GetElectricalSensors();
+		m_rooms = database->GetRooms();
+		m_buildings = database->GetBuildings();
+
 		sensorsUi.clear();
 		roomsUi.clear();
-		for (auto sensor : sensors) {
+		for (auto sensor : m_electricalSensors) {
 			ElectricalSensorPtr ptrSensor = ElectricalSensorPtr(new ElectricalSensor(this, sensor));
-			auto found = std::find_if(sensorTypes.begin(), sensorTypes.end(), [sensor](const Database::DbElectricalSensorTypePtr& type)
+			auto found = std::find_if(m_sensorTypes.begin(), m_sensorTypes.end(), [sensor](const Database::DbElectricalSensorTypePtr& type)
 				{
 					return (sensor->GetTypeId() == type->GetId());
 				}
 			);
-			if (found != sensorTypes.end()) {
+			if (found != m_sensorTypes.end()) {
 				ptrSensor->SetType(*found);
 			}
 			ptrSensor->adjustSize();
@@ -69,10 +72,10 @@ namespace SmartCampus {
 			roomVector.second.push_back(sensor);
 		}
 		for (auto& room : roomsUi) {
-			auto it = std::find_if(rooms.begin(), rooms.end(), [room](const Database::DbRoomPtr& db_room) {
+			auto it = std::find_if(m_rooms.begin(), m_rooms.end(), [room](const Database::DbRoomPtr& db_room) {
 					return (room.first == db_room->GetId());
 				});
-			if (it != rooms.end()) {
+			if (it != m_rooms.end()) {
 				room.second.first = (*it)->GetNumber();
 			}
 		}
@@ -93,7 +96,7 @@ namespace SmartCampus {
 			roomFrame->setFrameShadow(QFrame::Shadow::Raised);
 			QVBoxLayout* roomLayout = new QVBoxLayout();
 			roomFrame->setLayout(roomLayout);
-			QLabel* label = new QLabel(QString::fromLocal8Bit("Комната № %1").arg(room.second.first));
+			QLabel* label = new QLabel(QString::fromLocal8Bit("Комната № %1. Корпус № %2").arg(room.second.first));
 			//label->setAlignment(Qt::AlignmentFlag::AlignTop);
 			roomLayout->setAlignment(Qt::AlignmentFlag::AlignTop);
 			roomLayout->addWidget(label);
@@ -138,5 +141,13 @@ namespace SmartCampus {
 	{
 		LoadData();
 		UpdateUi();
+	}
+
+	void Application::ClearData()
+	{
+		m_sensorTypes.clear();
+		m_electricalSensors.clear();
+		m_rooms.clear();
+		m_buildings.clear();
 	}
 }

@@ -24,7 +24,7 @@ protected:
 		void closeEvent(QCloseEvent* event) override;
 	private:
 		void Timeout();
-
+		void ClearData();
 		Ui::MainWindow* ui;
 		QVector<SmartCampus::ElectricalSensorPtr> sensorsUi;
 		DbManagerPtr database;
@@ -33,6 +33,11 @@ protected:
 		int m_height;
 		QTimer m_timer;
 		std::map<uint32_t, std::pair<uint32_t, QVector<SmartCampus::ElectricalSensorPtr>>> roomsUi;
+
+		QVector<Database::DbElectricalSensorTypePtr> m_sensorTypes;
+		QVector<Database::DbElectricalSensorPtr> m_electricalSensors;
+		QVector<Database::DbRoomPtr> m_rooms;
+		QVector<Database::DbBuildingPtr> m_buildings;
 };
 
 }

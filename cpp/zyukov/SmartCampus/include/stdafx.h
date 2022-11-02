@@ -26,7 +26,15 @@ namespace SmartCampus {
 	class ElectricalSensor;
 	namespace Database {
 		class ValueGenerator;
+		class DbElectricalSensorType;
+		class DbElectricalSensor;
+		class DbRoom;
+		class DbBuilding;
 		using ValueGeneratorPtr = std::shared_ptr<ValueGenerator>;
+		using DbElectricalSensorTypePtr = std::shared_ptr<DbElectricalSensorType>;
+		using DbElectricalSensorPtr = std::shared_ptr<DbElectricalSensor>;
+		using DbRoomPtr = std::shared_ptr<DbRoom>;
+		using DbBuildingPtr = std::shared_ptr<DbBuilding>;
 	}
 	using DbManagerPtr = std::shared_ptr<DBManager>;
 	using ApplicationPtr = std::shared_ptr<Application>;

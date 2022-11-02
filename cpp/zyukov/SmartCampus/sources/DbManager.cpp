@@ -134,7 +134,7 @@ namespace SmartCampus {
 		//Пока можно читать результат
 		while (query.next())
 		{
-			result.append(Database::DbRoomPtr(new Database::DbRoom(query.value(2).toUInt(), query.value(0).toString(), query.value(1).toUInt())));
+			result.append(Database::DbRoomPtr(new Database::DbRoom(query.value(2).toUInt(), query.value(0).toString(), query.value(1).toUInt(), query.value(3).toUInt())));
 		}
 		return result;
 	}
@@ -167,7 +167,47 @@ namespace SmartCampus {
 		//Пока можно читать результат
 		while (query.next())
 		{
-			result.append(Database::DbElectricalSensorTypePtr(new Database::DbElectricalSensorType(query.value(1).toUInt(), query.value(0).toString())));
+			result.append(Database::DbElectricalSensorTypePtr(new Database::DbElectricalSensorType(query.value(1).toUInt(), query.value(0).toString(), query.value(2).toString())));
+		}
+		return result;
+	}
+
+	QVector<Database::DbBuildingPtr> DBManager::GetBuildings() const
+	{
+		boost::mutex::scoped_lock lock(m_selfProtectionMutex);
+		QVector<Database::DbBuildingPtr> result = {};
+		if (!IsOpened())
+		{
+			//База неоткрыта
+			if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("Не удалось получить список зданий. Нет подключения к БД."));
+			return result;
+		}
+
+		//Для запроса
+		QSqlQuery query(*this);
+		//Название таблицы
+		static const QString table = "buildings";
+		//Строка SQL запроса
+		static const QString cmd = QString("SELECT * FROM %1").arg(table);
+
+		//Выполнение запроса
+		if (!query.exec(cmd))
+		{
+			//Ошибка выполнение запроса
+			if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("Ошибка выполнения запроса в таблице %1. %2").arg(table).arg(query.lastError().text()));
+			return result;
+		}
+		//Пока можно читать результат
+		while (query.next())
+		{
+			Database::Coordinates coordinates;
+			coordinates.NValue = query.value(4).toDouble();
+			coordinates.EValue = query.value(5).toDouble();
+			result.append(Database::DbBuildingPtr(new Database::DbBuilding(query.value(0).toUInt(), 
+						query.value(1).toUInt(), 
+						query.value(2).toString(), 
+						query.value(3).toUInt(),
+						coordinates)));
 		}
 		return result;
 	}
