@@ -11,11 +11,11 @@ export class ElectricalService implements ElectricalServiceInterface {
     // TODO: вынести baseURL в env файл
     private baseURL: string = 'http://localhost:8000/'
 
-    public async getRooms(): Promise<RoomsSet> {
+    public async getRooms(id: number): Promise<RoomsSet> {
 
         let result = [] as RoomsSet
         try {
-            const response = await fetch(this.baseURL + 'getRoomsData', this.requsetInit)
+            const response = await fetch(this.baseURL + `getRoomsData?id_room=${id}`, this.requsetInit)
             return response.json()
                 .then(data => {
                     for (let i in data) {
@@ -43,10 +43,10 @@ export class ElectricalService implements ElectricalServiceInterface {
                 .then(data => {
                     for (let i in data) {
                         let obj = {} as RoomsElectrical
-                        obj.name = data[i][1]
-                        obj.state = data[i][3]
-                        obj.value = data[i][4]
-                        obj.description = data[i][7]
+                        obj.name = data[i][0]
+                        obj.state = data[i][1]
+                        obj.value = data[i][2]
+                        obj.description = data[i][6]
                         result.push(obj)
                     }
                     return result

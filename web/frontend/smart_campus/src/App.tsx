@@ -1,11 +1,12 @@
 import React from 'react';
 
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
 
 import './App.css';
 import { RoomsComponent } from './components/Rooms/RoomsComponent';
-
+import { BuildingComponent } from './components/Building/BuildingComponent';
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import CssBaseline from '@mui/material/CssBaseline';
 
 const darkTheme = createTheme({
   palette: {
@@ -13,14 +14,35 @@ const darkTheme = createTheme({
   },
 });
 
-class App extends React.Component {
+type AppState = {
+  id_building: number
+}
+
+class App extends React.Component<{}, AppState> {
+
+  state = {
+    id_building: 0
+  }
 
   public render(): React.ReactNode {
+
+    const setBuildingId = (buildingId: number): void => {
+      this.setState({
+        id_building: buildingId
+      })
+    }
+
+
     return (
-      <ThemeProvider theme={darkTheme}>
-        <CssBaseline />
-          <RoomsComponent />
-      </ThemeProvider>
+      <BrowserRouter>
+        <ThemeProvider theme={darkTheme}>
+          <CssBaseline />
+          <Routes>
+            <Route path='/' element={<BuildingComponent setBuildingId={setBuildingId} />} />
+            <Route path='/building:id' element={<RoomsComponent idBuilding={this.state.id_building} />} />
+          </Routes>
+        </ThemeProvider>
+      </BrowserRouter>
     );
   }
 }

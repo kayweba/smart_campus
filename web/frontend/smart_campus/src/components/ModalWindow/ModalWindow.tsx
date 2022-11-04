@@ -2,7 +2,7 @@ import { List, ListItem, Modal, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import React from 'react'
 import { RoomsElectricalSet } from '../../models/SmartKampusModel'
-import { Power, EmojiObjects, EmojiObjectsOutlined, PowerOutlined } from '@mui/icons-material';
+import { Power, EmojiObjects, EmojiObjectsOutlined, PowerOutlined, Waves } from '@mui/icons-material';
 
 import styles from './ModalWindow.module.css'
 
@@ -24,7 +24,7 @@ export class ModalWindow extends React.Component<ModalWindowProps, ModalWindowSt
 
         const getItem = (descriprion: string, state: number = 1) => {
             switch (descriprion) {
-                case 'Розетки':
+                case 'Контроль розетки':
                     return <div className={styles.header}>
                         {
                             state === 1
@@ -35,7 +35,7 @@ export class ModalWindow extends React.Component<ModalWindowProps, ModalWindowSt
                             Розетки
                         </Typography>
                     </div>
-                case 'Свет':
+                case 'Контроль света':
                     return <div className={styles.header}>
                         {
                             state === 1
@@ -46,6 +46,17 @@ export class ModalWindow extends React.Component<ModalWindowProps, ModalWindowSt
                             Свет
                         </Typography>
                     </div>
+                case 'Контроль отопления':
+                    return <div className={styles.header}>
+                        {
+                            state === 1
+                                ? <Waves style={{ color: '#F4CA00' }} />
+                                : <Waves />
+                        }
+                        <Typography style={{ marginTop: '2px', marginLeft: '2px' }}>
+                            Отопление
+                        </Typography>
+            </div>
                 default:
                     return descriprion
             }

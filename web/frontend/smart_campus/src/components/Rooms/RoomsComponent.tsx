@@ -1,7 +1,7 @@
-import React from 'react'
+import React, { Fragment } from 'react'
 
-import { ErrorOutlineOutlined } from '@mui/icons-material';
-import { Grid } from '@mui/material'
+import { ErrorOutlineOutlined, OtherHousesOutlined } from '@mui/icons-material';
+import { Grid, IconButton } from '@mui/material'
 
 import { RoomsSet } from '../../models/SmartKampusModel'
 import { ElectricalService } from '../../services/ElectricalService/ElectricalService'
@@ -9,8 +9,11 @@ import { RoomComponent } from '../Room/RoomComponent'
 
 import styles from './Rooms.module.css'
 import { ErrorReportButton } from '../ErrorReport/ErrorReporButton';
+import { Link } from 'react-router-dom'
 
-type RoomsComponentProps = {}
+type RoomsComponentProps = {
+    idBuilding: number
+}
 
 type RoomsComponentState = {
     smartKampus: RoomsSet,
@@ -25,14 +28,14 @@ export class RoomsComponent extends React.Component<RoomsComponentProps, RoomsCo
     }
 
     async componentDidMount() {
-        const data = await new ElectricalService().getRooms()
+        const data = await new ElectricalService().getRooms(this.props.idBuilding)
         this.setState({
             smartKampus: data
         })
     }
 
     public render(): React.ReactNode {
-        
+
         const updateErrorsNumber = (): void => {
             this.setState({
                 ...this.state,
@@ -48,7 +51,13 @@ export class RoomsComponent extends React.Component<RoomsComponentProps, RoomsCo
         }
 
         return (
-            <>
+
+            <Fragment>
+                <Link to="/">
+                    <IconButton sx={{ marginLeft: '20px', position: 'fixed' }}>
+                        <OtherHousesOutlined color='success' />
+                    </IconButton>
+                </Link>
                 <ErrorReportButton onClick={() => { }} numberErrors={this.state.numberErrors} />
                 <Grid container sx={{ margin: '0 auto' }} className={styles.gridContainer} direction="row" spacing={1}>
                     {
@@ -70,8 +79,7 @@ export class RoomsComponent extends React.Component<RoomsComponentProps, RoomsCo
                             )
                     }
                 </Grid>
-            </>
-
+            </Fragment>
         )
     }
 }
