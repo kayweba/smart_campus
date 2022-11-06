@@ -31,14 +31,19 @@ namespace SmartCampus {
 			return m_unit;
 		}
 
-		DbElectricalSensor::DbElectricalSensor() : DbElectricalSensor(0, "", 0, false, 0.0, 0) {}
+		unsigned int DbElectricalSensorType::calculateSize()
+		{
+			return (m_id + m_description.size() + m_unit.size());
+		}
 
-		DbElectricalSensor::DbElectricalSensor(uint32_t id, QString name, uint32_t typeId, bool state, double value, uint32_t roomId)
+		DbElectricalSensor::DbElectricalSensor() : DbElectricalSensor(0, "", DbElectricalSensorTypePtr(), false, 0.0, 0) {}
+
+		DbElectricalSensor::DbElectricalSensor(uint32_t id, QString name, DbElectricalSensorTypePtr type, bool state, double value, uint32_t roomId)
 		{
 			m_id = id;
 			std::string _name = name.toStdString();
 			m_name = name;
-			m_typeId = typeId;
+			m_type = type;
 			m_state = state;
 			m_value = value;
 			m_roomId = roomId;
@@ -51,17 +56,20 @@ namespace SmartCampus {
 
 		uint32_t DbElectricalSensor::GetId() const { return m_id; }
 		QString DbElectricalSensor::GetName() const { return m_name; }
-		uint32_t DbElectricalSensor::GetTypeId() const { return m_typeId; }
+		DbElectricalSensorTypePtr DbElectricalSensor::GetType() const { return m_type; }
 		bool DbElectricalSensor::GetState() const { return m_state; }
 		double DbElectricalSensor::GetValue() const { return m_value; }
 		uint32_t DbElectricalSensor::GetRoomId() const { return m_roomId; }
 
 		void DbElectricalSensor::SetId(const uint32_t& id) { m_id = id; }
 		void DbElectricalSensor::SetName(const QString& name) { m_name = name; }
-		void DbElectricalSensor::SetTypeId(const uint32_t& typeId) { m_typeId = typeId; }
+		void DbElectricalSensor::SetType(const DbElectricalSensorTypePtr type) { m_type = type; }
 		void DbElectricalSensor::SetState(const bool& state) { m_state = state; }
 		void DbElectricalSensor::SetValue(const double& value) { m_value = value; }
 		void DbElectricalSensor::SetRoomId(const uint32_t& roomId) { m_roomId = roomId; }
+		unsigned int DbElectricalSensor::calculateSize() {
+			return m_id + m_name.size() + m_type->calculateSize() + m_roomId;
+		}
 
 		DbRoom::DbRoom() : DbRoom(0, QString(""), 0, 0) {};
 
@@ -87,6 +95,9 @@ namespace SmartCampus {
 		void DbRoom::SetDescription(const QString& description) { m_description = description; }
 		void DbRoom::SetNumber(const uint32_t& number) { m_number = number; }
 		void DbRoom::SetBuildingId(const uint32_t& buildingId) { m_buildingId = buildingId; }
+		unsigned int DbRoom::calculateSize() {
+			return (m_id + m_description.size() + m_number + m_buildingId);
+		}
 
 		DbBuilding::DbBuilding() : DbBuilding(0, 0, "", 0, Coordinates()) {}
 
@@ -115,4 +126,8 @@ namespace SmartCampus {
 		void DbBuilding::SetDescription(QString description) { m_description = description; }
 		void DbBuilding::SetCountOfFloors(uint32_t countOfFloors) { m_countOfFloors = countOfFloors; }
 		void DbBuilding::SetCoordinates(Coordinates coordinates) { m_coordinates = coordinates; }
+		unsigned int DbBuilding::calculateSize()
+		{
+			return (m_id + m_buildingNumber + m_description.size() + m_countOfFloors + m_coordinates.EValue + m_coordinates.NValue);
+		}
 }}

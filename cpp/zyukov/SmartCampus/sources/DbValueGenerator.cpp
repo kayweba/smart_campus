@@ -67,8 +67,11 @@ namespace SmartCampus {
 						boost::this_thread::sleep_until(boost::chrono::steady_clock::now() + boost::chrono::milliseconds(m_updateInfo.updatingIntervalMs));
 						auto sensors = m_ptrDatabaseManager->GetElectricalSensors();
 						for (auto& sensor : sensors) {
-							sensor->SetValue(std::rand() % m_updateInfo.maxValue);
 							sensor->SetState(std::rand() % 2 > 0 ? true : false);
+							if (sensor->GetState())
+								sensor->SetValue(std::rand() % m_updateInfo.maxValue);
+							else
+								sensor->SetValue(0);
 							m_ptrDatabaseManager->UpdateElectricalSensor(*sensor);
 						}
 					}

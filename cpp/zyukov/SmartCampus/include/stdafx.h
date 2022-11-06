@@ -9,7 +9,9 @@
 #include <QTextCodec>
 #include <QPushButton>
 #include <QTimer>
+#include <QVBoxLayout>
 #include <map>
+#include <memory>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/filesystem.hpp>
@@ -18,25 +20,38 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/bind/bind.hpp>
 #include <boost/dll.hpp>
+#include <boost/crc.hpp>
 
 // Forward declarations
 namespace SmartCampus {
 	class Application;
 	class DBManager;
-	class ElectricalSensor;
 	namespace Database {
+		class BaseSize;
 		class ValueGenerator;
 		class DbElectricalSensorType;
 		class DbElectricalSensor;
 		class DbRoom;
 		class DbBuilding;
 		using ValueGeneratorPtr = std::shared_ptr<ValueGenerator>;
+		using BaseSizePtr = std::shared_ptr<BaseSize>;
 		using DbElectricalSensorTypePtr = std::shared_ptr<DbElectricalSensorType>;
 		using DbElectricalSensorPtr = std::shared_ptr<DbElectricalSensor>;
 		using DbRoomPtr = std::shared_ptr<DbRoom>;
 		using DbBuildingPtr = std::shared_ptr<DbBuilding>;
 	}
+	namespace Gui {
+		class ElectricalSensor;
+		class BuildingItem;
+		class BuildingTreeModel;
+		template<class T>
+		class BaseContainer;
+		using ElectricalSensorPtr = std::shared_ptr<ElectricalSensor>;
+		using BuildingItemPtr = std::shared_ptr<BuildingItem>;
+		using BuildingTreeModelPtr = std::shared_ptr<BuildingTreeModel>;
+		using GuiBuildingsPtr = std::shared_ptr< BaseContainer< std::shared_ptr<BaseContainer< std::shared_ptr<ElectricalSensor > > > > >;
+		using GuiRoomsPtr = std::shared_ptr< Gui::BaseContainer< std::shared_ptr<ElectricalSensor> > >;
+	}
 	using DbManagerPtr = std::shared_ptr<DBManager>;
 	using ApplicationPtr = std::shared_ptr<Application>;
-	using ElectricalSensorPtr = std::shared_ptr<ElectricalSensor>;
 }

@@ -32,7 +32,6 @@ namespace SmartCampus {
 
 	QVector<Database::DbElectricalSensorPtr> DBManager::GetElectricalSensors() const
 	{
-		boost::mutex::scoped_lock lock(m_selfProtectionMutex);
 		QVector<Database::DbElectricalSensorPtr> result = {};
 		if (!IsOpened())
 		{
@@ -48,24 +47,38 @@ namespace SmartCampus {
 		static const QString cmd = QString("SELECT * FROM %1").arg(table);
 
 		//Выполнение запроса
-		if (!query.exec(cmd))
 		{
-			//Ошибка выполнение запроса
-			if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("Ошибка выполнения запроса в таблице %1. %2").arg(table).arg(query.lastError().text()));
-			return result;
+			boost::mutex::scoped_lock lock(m_selfProtectionMutex);
+			if (!query.exec(cmd))
+			{
+				//Ошибка выполнение запроса
+				if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("Ошибка выполнения запроса в таблице %1. %2").arg(table).arg(query.lastError().text()));
+				return result;
+			}
 		}
 		//Пока можно читать результат
 		while (query.next())
 		{
-			result.append(Database::DbElectricalSensorPtr(new Database::DbElectricalSensor(query.value(3).toUInt(), query.value(0).toString(), query.value(4).toUInt(),
-				query.value(1).toBool(), query.value(2).toDouble(), query.value(5).toUInt())));
+			auto sensorTypes = GetElectricalSensorTypes();
+			Database::DbElectricalSensorTypePtr currentSensorType = nullptr;
+			for (auto sensorType : sensorTypes) {
+				if (sensorType->GetId() == query.value(4).toUInt())
+					currentSensorType = sensorType;
+			}
+			if (currentSensorType != nullptr) {
+				result.append(Database::DbElectricalSensorPtr(new Database::DbElectricalSensor(query.value(3).toUInt(), query.value(0).toString(), currentSensorType,
+					query.value(1).toBool(), query.value(2).toDouble(), query.value(5).toUInt())));
+			}
+			else {
+				//Не удалось найти нужный тип датчика. Текущий датчик не попадет в общий список
+				if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("При попытке добавить датчик в список произошла ошибка. Датчик имеет неизвестный тип данных"));
+			}
 		}
 		return result;
 	}
 
 	void DBManager::UpdateElectricalSensor(const Database::DbElectricalSensor& sensor)
 	{
-		boost::mutex::scoped_lock lock(m_selfProtectionMutex);
 		if (!IsOpened())
 		{
 			//База неоткрыта
@@ -92,23 +105,25 @@ namespace SmartCampus {
 		//Подставляем в запрос своим параметры
 		query.bindValue(":id", sensor.GetId());
 		query.bindValue(":name", sensor.GetName());
-		query.bindValue(":type_id", sensor.GetTypeId());
+		query.bindValue(":type_id", sensor.GetType()->GetId());
 		query.bindValue(":state", sensor.GetState());
 		query.bindValue(":value", sensor.GetValue());
 		query.bindValue(":room_id", sensor.GetRoomId());
 
-		//Выполнение запроса
-		if (!query.exec())
 		{
-			//Ошибка выполнение запроса
-			if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("Ошибка выполнения запроса в таблице %1. %2").arg(table).arg(query.lastError().text()));
-			return;
+			boost::mutex::scoped_lock lock(m_selfProtectionMutex);
+			//Выполнение запроса
+			if (!query.exec())
+			{
+				//Ошибка выполнение запроса
+				if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("Ошибка выполнения запроса в таблице %1. %2").arg(table).arg(query.lastError().text()));
+				return;
+			}
 		}
 	}
 
 	QVector<Database::DbRoomPtr> DBManager::GetRooms() const
 	{
-		boost::mutex::scoped_lock lock(m_selfProtectionMutex);
 		QVector<Database::DbRoomPtr> result = {};
 		if (!IsOpened())
 		{
@@ -123,13 +138,15 @@ namespace SmartCampus {
 		static const QString table = "Rooms";
 		//Строка SQL запроса
 		static const QString cmd = QString("SELECT * FROM %1").arg(table);
-
-		//Выполнение запроса
-		if (!query.exec(cmd))
 		{
-			//Ошибка выполнение запроса
-			if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("Ошибка выполнения запроса в таблице %1. %2").arg(table).arg(query.lastError().text()));
-			return result;
+			boost::mutex::scoped_lock lock(m_selfProtectionMutex);
+			//Выполнение запроса
+			if (!query.exec(cmd))
+			{
+				//Ошибка выполнение запроса
+				if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("Ошибка выполнения запроса в таблице %1. %2").arg(table).arg(query.lastError().text()));
+				return result;
+			}
 		}
 		//Пока можно читать результат
 		while (query.next())
@@ -141,7 +158,6 @@ namespace SmartCampus {
 
 	QVector<Database::DbElectricalSensorTypePtr> DBManager::GetElectricalSensorTypes() const
 	{
-		boost::mutex::scoped_lock lock(m_selfProtectionMutex);
 		QVector<Database::DbElectricalSensorTypePtr> result = {};
 		if (!IsOpened())
 		{
@@ -157,12 +173,15 @@ namespace SmartCampus {
 		//Строка SQL запроса
 		static const QString cmd = QString("SELECT * FROM %1").arg(table);
 
-		//Выполнение запроса
-		if (!query.exec(cmd))
 		{
-			//Ошибка выполнение запроса
-			if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("Ошибка выполнения запроса в таблице %1. %2").arg(table).arg(query.lastError().text()));
-			return result;
+			boost::mutex::scoped_lock lock(m_selfProtectionMutex);
+			//Выполнение запроса
+			if (!query.exec(cmd))
+			{
+				//Ошибка выполнение запроса
+				if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("Ошибка выполнения запроса в таблице %1. %2").arg(table).arg(query.lastError().text()));
+				return result;
+			}
 		}
 		//Пока можно читать результат
 		while (query.next())
@@ -174,7 +193,6 @@ namespace SmartCampus {
 
 	QVector<Database::DbBuildingPtr> DBManager::GetBuildings() const
 	{
-		boost::mutex::scoped_lock lock(m_selfProtectionMutex);
 		QVector<Database::DbBuildingPtr> result = {};
 		if (!IsOpened())
 		{
@@ -190,12 +208,15 @@ namespace SmartCampus {
 		//Строка SQL запроса
 		static const QString cmd = QString("SELECT * FROM %1").arg(table);
 
-		//Выполнение запроса
-		if (!query.exec(cmd))
 		{
-			//Ошибка выполнение запроса
-			if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("Ошибка выполнения запроса в таблице %1. %2").arg(table).arg(query.lastError().text()));
-			return result;
+			boost::mutex::scoped_lock lock(m_selfProtectionMutex);
+			//Выполнение запроса
+			if (!query.exec(cmd))
+			{
+				//Ошибка выполнение запроса
+				if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("Ошибка выполнения запроса в таблице %1. %2").arg(table).arg(query.lastError().text()));
+				return result;
+			}
 		}
 		//Пока можно читать результат
 		while (query.next())

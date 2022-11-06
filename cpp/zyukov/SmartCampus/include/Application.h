@@ -2,6 +2,7 @@
 
 #include <stdafx.h>
 #include <QMainWindow>
+#include <QMap>
 #include <ui_mainwindow.h>
 
 namespace  SmartCampus {
@@ -19,25 +20,42 @@ class Application : public QMainWindow {
 	public slots:
 		void OnStartGeneratorClicked();
 		void OnStopGeneratorClicked();
-protected:
+		void OnHideButtonClicked(bool checked = false);
+		void OnCustomContextMenu(const QPoint& point);
+
+	private slots:
+		void OnTransferSensorClicked(bool checked = false);
+		void OnTransferFloorClicked(bool checked = false);
+	protected:
 		void showEvent(QShowEvent* event) override;
 		void closeEvent(QCloseEvent* event) override;
 	private:
 		void Timeout();
 		void ClearData();
+		void BuildTree();
+		template <class T>
+		unsigned int CalculateCheckSumm(QVector<T>& arr);
 		Ui::MainWindow* ui;
-		QVector<SmartCampus::ElectricalSensorPtr> sensorsUi;
+		bool treeIsVisible;
 		DbManagerPtr database;
 		Database::ValueGeneratorPtr generator;
 		int m_width;
 		int m_height;
+		uint32_t countOfSensors;
 		QTimer m_timer;
-		std::map<uint32_t, std::pair<uint32_t, QVector<SmartCampus::ElectricalSensorPtr>>> roomsUi;
+		boost::mutex sensorLock;
 
-		QVector<Database::DbElectricalSensorTypePtr> m_sensorTypes;
-		QVector<Database::DbElectricalSensorPtr> m_electricalSensors;
-		QVector<Database::DbRoomPtr> m_rooms;
-		QVector<Database::DbBuildingPtr> m_buildings;
+		QVector< Database::DbElectricalSensorTypePtr > m_sensorTypes;
+		QVector< Database::DbElectricalSensorPtr > m_electricalSensors;
+		unsigned int cacheArr[3];
+		QVector< Database::DbRoomPtr > m_rooms;
+		QVector< Database::DbBuildingPtr > m_buildings;
+		QMap< uint32_t, Gui::GuiBuildingsPtr > m_guiBuildingsPtr;
+		QMenu* ptrBuildingTreeRoomContextMenu;
+		QMenu* ptrBuildingTreeFloorContextMenu;
+		QAction* ptrTransferSensorAction;
+		QAction* ptrTransferFloorAction;
+		Gui::BuildingTreeModelPtr m_ptrBuildingTreeModel;
 };
 
 }
