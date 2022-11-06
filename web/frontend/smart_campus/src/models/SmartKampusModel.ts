@@ -6,6 +6,7 @@ export type Rooms = {
     id: number,
     name: string,
     electrical_sensors_count: number,
+    room_number: number,
 }
 
 export type RoomsElectrical = {

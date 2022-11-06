@@ -7,6 +7,7 @@ import { RoomsComponent } from './components/Rooms/RoomsComponent';
 import { BuildingComponent } from './components/Building/BuildingComponent';
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import CssBaseline from '@mui/material/CssBaseline';
+import { Floors } from './components/Floors/Floors';
 
 const darkTheme = createTheme({
   palette: {
@@ -39,7 +40,7 @@ class App extends React.Component<{}, AppState> {
           <CssBaseline />
           <Routes>
             <Route path='/' element={<BuildingComponent setBuildingId={setBuildingId} />} />
-            <Route path='/building:id' element={<RoomsComponent idBuilding={this.state.id_building} />} />
+            <Route path='/building:id' element={<Floors buildingId={this.state.id_building} />} />
           </Routes>
         </ThemeProvider>
       </BrowserRouter>

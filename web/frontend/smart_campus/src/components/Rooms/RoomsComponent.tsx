@@ -10,9 +10,10 @@ import { RoomComponent } from '../Room/RoomComponent'
 import styles from './Rooms.module.css'
 import { ErrorReportButton } from '../ErrorReport/ErrorReporButton';
 import { Link } from 'react-router-dom'
+import { Floors } from '../Floors/Floors';
 
 type RoomsComponentProps = {
-    idBuilding: number
+    rooms: RoomsSet
 }
 
 type RoomsComponentState = {
@@ -25,13 +26,6 @@ export class RoomsComponent extends React.Component<RoomsComponentProps, RoomsCo
         smartKampus: [] as RoomsSet,
         error: false,
         numberErrors: 0,
-    }
-
-    async componentDidMount() {
-        const data = await new ElectricalService().getRooms(this.props.idBuilding)
-        this.setState({
-            smartKampus: data
-        })
     }
 
     public render(): React.ReactNode {
@@ -53,12 +47,6 @@ export class RoomsComponent extends React.Component<RoomsComponentProps, RoomsCo
         return (
 
             <Fragment>
-                <Link to="/">
-                    <IconButton sx={{ marginLeft: '20px', position: 'fixed' }}>
-                        <OtherHousesOutlined color='success' />
-                    </IconButton>
-                </Link>
-                <ErrorReportButton onClick={() => { }} numberErrors={this.state.numberErrors} />
                 <Grid container sx={{ margin: '0 auto' }} className={styles.gridContainer} direction="row" spacing={1}>
                     {
                         this.state.error
@@ -71,7 +59,7 @@ export class RoomsComponent extends React.Component<RoomsComponentProps, RoomsCo
                                     </div>
                                 </div>
                             </div>
-                            : this.state.smartKampus.map(item =>
+                            : this.props.rooms.map(item =>
                                 <Grid key={item.name} item sx={{ marginBottom: '10px' }}>
                                     <RoomComponent setErrorFlag={setErrorFlag} name={item.name} electricalSensorsCount={item.electrical_sensors_count} id={item.id} updateErrorsNumber={updateErrorsNumber} />
                                 </Grid>
