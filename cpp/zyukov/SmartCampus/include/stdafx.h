@@ -49,8 +49,8 @@ namespace SmartCampus {
 		using ElectricalSensorPtr = std::shared_ptr<ElectricalSensor>;
 		using BuildingItemPtr = std::shared_ptr<BuildingItem>;
 		using BuildingTreeModelPtr = std::shared_ptr<BuildingTreeModel>;
-		using GuiBuildingsPtr = std::shared_ptr< BaseContainer< std::shared_ptr<BaseContainer< std::shared_ptr<ElectricalSensor > > > > >;
-		using GuiRoomsPtr = std::shared_ptr< Gui::BaseContainer< std::shared_ptr<ElectricalSensor> > >;
+		using GuiRooms = BaseContainer<ElectricalSensor>;
+		using GuiBuildings = BaseContainer<GuiRooms>;
 	}
 	using DbManagerPtr = std::shared_ptr<DBManager>;
 	using ApplicationPtr = std::shared_ptr<Application>;

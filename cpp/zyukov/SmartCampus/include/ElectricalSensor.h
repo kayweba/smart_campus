@@ -12,9 +12,14 @@ namespace SmartCampus {	namespace Gui {
 			explicit BaseContainer(QWidget* parent, const QString& caption) : QFrame(parent)
 			{
 				this->setFrameStyle(QFrame::Panel | QFrame::Raised);
-				uiLabel = new QLabel(caption, this);
-				uiLabel->adjustSize();
+				if (!caption.isEmpty()) {
+					uiLabel = new QLabel(caption, this);
+					uiLabel->adjustSize();
+				}
+				else uiLabel = nullptr;
+				m_parent = parent;
 				m_internalLayout = new QVBoxLayout(this);
+				m_internalLayout->setSizeConstraint(QLayout::SizeConstraint::SetMaximumSize);
 				m_internalLayout->setSpacing(10);
 				m_internalLayout->setContentsMargins(QMargins(10, 15, 10, 15));
 				m_arrWidgets.clear();
@@ -23,46 +28,38 @@ namespace SmartCampus {	namespace Gui {
 			}
 			~BaseContainer()
 			{
-				delete (uiLabel);
+				if (uiLabel != nullptr)
+					delete (uiLabel);
 				QLayoutItem* wItem;
-				while ((wItem = m_internalLayout->takeAt(0)) != 0)
+				while ((wItem = m_internalLayout->takeAt(0)) != 0) {
+					m_internalLayout->removeWidget(wItem->widget());
 					delete(wItem);
+				}
 				delete(m_internalLayout);
 				m_arrWidgets.clear();
 			}
-			T & AddWidget(T &  widget, uint32_t id)
+			std::weak_ptr<T> AddWidget(T * ptrWidget, uint32_t id)
 			{
 				// Try to find widget into array
-				auto found = std::find_if(m_arrWidgets.begin(), m_arrWidgets.end(), [id](QPair<uint32_t, T>& seek) {
+				auto found = std::find_if(m_arrWidgets.begin(), m_arrWidgets.end(), [id](QPair<uint32_t, std::shared_ptr<T>>& seek) {
 						return seek.first == id;
 					});
 				// Adding new widget if not found
 				if (found != m_arrWidgets.end()) {
-					return found->second;
+					found->second = std::shared_ptr<T>(ptrWidget);
+					return std::weak_ptr<T>(found->second);
 				}
 				else {
-					m_arrWidgets.push_back(qMakePair(id, widget));
-					m_internalLayout->addWidget(widget.get());
+					m_arrWidgets.push_back(qMakePair(id, std::shared_ptr<T>(ptrWidget)));
+					m_internalLayout->addWidget(m_arrWidgets.last().second.get());
 					adjustSize();
-					return (m_arrWidgets.last().second);
+					return std::weak_ptr<T>(m_arrWidgets.last().second);
 				}
-				return T();
-			}
-			void DeleteWidget(T & widget)
-			{
-				auto found = std::find_if(m_arrWidgets.begin(), m_arrWidgets.end(), [widget](QPair<uint32_t, T>& seek) {
-						return  seek.second == widget;
-					});
-				if (found != m_arrWidgets.end()) {
-					// Delete widget from layout and from array
-					m_internalLayout->removeWidget(found->second.get());
-					m_arrWidgets.erase(found);
-				}
-				adjustSize();
+				return std::weak_ptr<T>();
 			}
 			void DeleteWidget(uint32_t id)
 			{
-				auto found = std::find_if(m_arrWidgets.begin(), m_arrWidgets.end(), [id](QPair<uint32_t, T>& seek) {
+				auto found = std::find_if(m_arrWidgets.begin(), m_arrWidgets.end(), [id](QPair<uint32_t, std::shared_ptr<T>>& seek) {
 						return seek.first == id;
 					});
 				if (found != m_arrWidgets.end()) {
@@ -72,39 +69,43 @@ namespace SmartCampus {	namespace Gui {
 				}
 				adjustSize();
 			}
-			T getWidget(uint32_t & index) {
+			uint32_t getId(int index) {
 				if (index >= 0 && index < m_arrWidgets.size()) {
-					return m_arrWidgets[index].second;
+					return m_arrWidgets[index].first;
 				}
-				return nullptr;
+				return UINT32_MAX;
 			}
-			T findWidget(const uint32_t & id) {
-				auto found = std::find_if(m_arrWidgets.begin(), m_arrWidgets.end(), [id](QPair<uint32_t, T>& seek) {
+			std::weak_ptr<T> getWidget(int & index) {
+				if (index >= 0 && index < m_arrWidgets.size()) {
+					return std::weak_ptr<T>(m_arrWidgets[index].second);
+				}
+				return std::weak_ptr<T>();
+			}
+			std::weak_ptr<T> findWidget(const uint32_t & id) {
+				auto found = std::find_if(m_arrWidgets.begin(), m_arrWidgets.end(), [id](QPair<uint32_t, std::shared_ptr<T>>& seek) {
 						return seek.first == id;
 					});
 				if (found != m_arrWidgets.end())
-					return found->second;
+					return std::weak_ptr<T>(found->second);
 				else
-					return nullptr;
-				return nullptr;
+					return std::weak_ptr<T>();
 			}
 			int GetWidgetsCount() const { return m_arrWidgets.size(); }
 		protected:
 
 		private:
 			QLabel* uiLabel;
+			QWidget* m_parent;
 			QVBoxLayout* m_internalLayout;
-			QVector<QPair<uint32_t, T>> m_arrWidgets;
-			uint32_t m_id;
+			QVector<QPair<uint32_t, std::shared_ptr<T>>> m_arrWidgets;
 	};
 
 	class ElectricalSensor : public QWidget, public Database::DbElectricalSensor {
 	public:
 		explicit ElectricalSensor(QWidget* parent = nullptr, Database::DbElectricalSensorPtr ptrSensor = nullptr) noexcept;
 		explicit ElectricalSensor(const ElectricalSensor& other) noexcept;
-		explicit ElectricalSensor() noexcept;
 		ElectricalSensor& operator = (const ElectricalSensor& other);
-		Database::DbElectricalSensorPtr & const InternalSensor();
+		Database::DbElectricalSensorPtr & InternalSensor();
 		~ElectricalSensor();
 
 		void SetName(const QString& name);

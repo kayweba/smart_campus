@@ -30,14 +30,6 @@ namespace SmartCampus { namespace Gui {
 		m_ptrType = other.m_ptrType;
 	}
 
-	ElectricalSensor::ElectricalSensor() noexcept
-	{
-		m_parent = nullptr;
-		ui = nullptr;
-		m_ptrSensor = nullptr;
-		m_ptrType = nullptr;
-	}
-
 	ElectricalSensor& ElectricalSensor::operator = (const ElectricalSensor& other)
 	{
 		m_parent = other.m_parent;
@@ -104,7 +96,7 @@ namespace SmartCampus { namespace Gui {
 		m_ptrSensor = ptrSensor;
 	}
 
-	Database::DbElectricalSensorPtr& const ElectricalSensor::InternalSensor()
+	Database::DbElectricalSensorPtr& ElectricalSensor::InternalSensor()
 	{
 		return m_ptrSensor;
 	}

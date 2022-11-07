@@ -1,4 +1,4 @@
-﻿#include <BuildingTreeModel.h>
+#include <BuildingTreeModel.h>
 #include <BuildingTreeItem.h>
 
 namespace SmartCampus { namespace Gui {

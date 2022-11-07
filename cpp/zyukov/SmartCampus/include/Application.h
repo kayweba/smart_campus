@@ -4,9 +4,10 @@
 #include <QMainWindow>
 #include <QMap>
 #include <ui_mainwindow.h>
+#include <ElectricalSensor.h>
 
 namespace  SmartCampus {
-#define TIMER_TIMEOUT_MS 500
+#define TIMER_TIMEOUT_MS 250
 
 class Application : public QMainWindow {
 	public:
@@ -50,7 +51,7 @@ class Application : public QMainWindow {
 		unsigned int cacheArr[3];
 		QVector< Database::DbRoomPtr > m_rooms;
 		QVector< Database::DbBuildingPtr > m_buildings;
-		QMap< uint32_t, Gui::GuiBuildingsPtr > m_guiBuildingsPtr;
+		Gui::BaseContainer<Gui::GuiBuildings> m_guiBuildings;
 		QMenu* ptrBuildingTreeRoomContextMenu;
 		QMenu* ptrBuildingTreeFloorContextMenu;
 		QAction* ptrTransferSensorAction;

@@ -35,7 +35,7 @@ namespace SmartCampus { namespace Gui {
 		return 0;
 	}
 
-	uint32_t BuildingItem::columnCount() const
+	int BuildingItem::columnCount() const
 	{
 		return m_itemData.count();
 	}

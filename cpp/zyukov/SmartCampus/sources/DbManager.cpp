@@ -14,14 +14,14 @@ namespace SmartCampus {
 		QFile db(dbPath.absolutePath() + "/korpus_1.db");
 		if (db.exists()) {
 			this->setDatabaseName(db.fileName());
-			if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("Успешно подключились к базе данных"));
+			if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("РЈСЃРїРµС€РЅРѕ РїРѕРґРєР»СЋС‡РёР»РёСЃСЊ Рє Р±Р°Р·Рµ РґР°РЅРЅС‹С…"));
 			dbState = open();
 			if (!dbState) {
-				if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("Не удалось подключиться к базе данных"));
+				if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("РќРµ СѓРґР°Р»РѕСЃСЊ РїРѕРґРєР»СЋС‡РёС‚СЊСЃСЏ Рє Р±Р°Р·Рµ РґР°РЅРЅС‹С…"));
 			}
 		}
 		else {
-			if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("Файл базы данных не найден по пути %1").arg(dbPath.absolutePath()));
+			if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("Р¤Р°Р№Р» Р±Р°Р·С‹ РґР°РЅРЅС‹С… РЅРµ РЅР°Р№РґРµРЅ РїРѕ РїСѓС‚Рё %1").arg(dbPath.absolutePath()));
 		}
 	}
 
@@ -35,28 +35,28 @@ namespace SmartCampus {
 		QVector<Database::DbElectricalSensorPtr> result = {};
 		if (!IsOpened())
 		{
-			if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("Не удалось получить список датчиков. Нет подключения к БД."));
+			if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("РќРµ СѓРґР°Р»РѕСЃСЊ РїРѕР»СѓС‡РёС‚СЊ СЃРїРёСЃРѕРє РґР°С‚С‡РёРєРѕРІ. РќРµС‚ РїРѕРґРєР»СЋС‡РµРЅРёСЏ Рє Р‘Р”."));
 			return result;
 		}
 
-		//Для запроса
+		//Р”Р»СЏ Р·Р°РїСЂРѕСЃР°
 		QSqlQuery query(*this);
-		//Название таблицы
+		//РќР°Р·РІР°РЅРёРµ С‚Р°Р±Р»РёС†С‹
 		static const QString table = "ElectricalSensors";
-		//Строка SQL запроса
+		//РЎС‚СЂРѕРєР° SQL Р·Р°РїСЂРѕСЃР°
 		static const QString cmd = QString("SELECT * FROM %1").arg(table);
 
-		//Выполнение запроса
+		//Р’С‹РїРѕР»РЅРµРЅРёРµ Р·Р°РїСЂРѕСЃР°
 		{
 			boost::mutex::scoped_lock lock(m_selfProtectionMutex);
 			if (!query.exec(cmd))
 			{
-				//Ошибка выполнение запроса
-				if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("Ошибка выполнения запроса в таблице %1. %2").arg(table).arg(query.lastError().text()));
+				//РћС€РёР±РєР° РІС‹РїРѕР»РЅРµРЅРёРµ Р·Р°РїСЂРѕСЃР°
+				if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("РћС€РёР±РєР° РІС‹РїРѕР»РЅРµРЅРёСЏ Р·Р°РїСЂРѕСЃР° РІ С‚Р°Р±Р»РёС†Рµ %1. %2").arg(table).arg(query.lastError().text()));
 				return result;
 			}
 		}
-		//Пока можно читать результат
+		//РџРѕРєР° РјРѕР¶РЅРѕ С‡РёС‚Р°С‚СЊ СЂРµР·СѓР»СЊС‚Р°С‚
 		while (query.next())
 		{
 			auto sensorTypes = GetElectricalSensorTypes();
@@ -70,8 +70,8 @@ namespace SmartCampus {
 					query.value(1).toBool(), query.value(2).toDouble(), query.value(5).toUInt())));
 			}
 			else {
-				//Не удалось найти нужный тип датчика. Текущий датчик не попадет в общий список
-				if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("При попытке добавить датчик в список произошла ошибка. Датчик имеет неизвестный тип данных"));
+				//РќРµ СѓРґР°Р»РѕСЃСЊ РЅР°Р№С‚Рё РЅСѓР¶РЅС‹Р№ С‚РёРї РґР°С‚С‡РёРєР°. РўРµРєСѓС‰РёР№ РґР°С‚С‡РёРє РЅРµ РїРѕРїР°РґРµС‚ РІ РѕР±С‰РёР№ СЃРїРёСЃРѕРє
+				if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("РџСЂРё РїРѕРїС‹С‚РєРµ РґРѕР±Р°РІРёС‚СЊ РґР°С‚С‡РёРє РІ СЃРїРёСЃРѕРє РїСЂРѕРёР·РѕС€Р»Р° РѕС€РёР±РєР°. Р”Р°С‚С‡РёРє РёРјРµРµС‚ РЅРµРёР·РІРµСЃС‚РЅС‹Р№ С‚РёРї РґР°РЅРЅС‹С…"));
 			}
 		}
 		return result;
@@ -81,28 +81,28 @@ namespace SmartCampus {
 	{
 		if (!IsOpened())
 		{
-			//База неоткрыта
-			if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("Не удалось обновить значение датчика. Нет подключения к БД."));
+			//Р‘Р°Р·Р° РЅРµРѕС‚РєСЂС‹С‚Р°
+			if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("РќРµ СѓРґР°Р»РѕСЃСЊ РѕР±РЅРѕРІРёС‚СЊ Р·РЅР°С‡РµРЅРёРµ РґР°С‚С‡РёРєР°. РќРµС‚ РїРѕРґРєР»СЋС‡РµРЅРёСЏ Рє Р‘Р”."));
 			return;
 		}
 
-		//Для запроса
+		//Р”Р»СЏ Р·Р°РїСЂРѕСЃР°
 		QSqlQuery query(*this);
-		//Название таблицы
+		//РќР°Р·РІР°РЅРёРµ С‚Р°Р±Р»РёС†С‹
 		static const QString table = "ElectricalSensors";
-		//Строка SQL запроса
+		//РЎС‚СЂРѕРєР° SQL Р·Р°РїСЂРѕСЃР°
 		static const QString cmd = QString("UPDATE %1 SET \"sname\"=:name, \"id_type\"=:type_id,"
 			" \"nstate\"=:state, \"rvalue\"=:value, \"id_room\"=:room_id "
 			"WHERE \"id\"=:id").arg(table);
 
-		//Подготовка запроса
+		//РџРѕРґРіРѕС‚РѕРІРєР° Р·Р°РїСЂРѕСЃР°
 		if (!query.prepare(cmd))
 		{
-			//Ошибка выполнение запроса
-			if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("Ошибка выполнения запроса в таблице %1. %2").arg(table).arg(query.lastError().text()));
+			//РћС€РёР±РєР° РІС‹РїРѕР»РЅРµРЅРёРµ Р·Р°РїСЂРѕСЃР°
+			if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("РћС€РёР±РєР° РІС‹РїРѕР»РЅРµРЅРёСЏ Р·Р°РїСЂРѕСЃР° РІ С‚Р°Р±Р»РёС†Рµ %1. %2").arg(table).arg(query.lastError().text()));
 			return;
 		}
-		//Подставляем в запрос своим параметры
+		//РџРѕРґСЃС‚Р°РІР»СЏРµРј РІ Р·Р°РїСЂРѕСЃ СЃРІРѕРёРј РїР°СЂР°РјРµС‚СЂС‹
 		query.bindValue(":id", sensor.GetId());
 		query.bindValue(":name", sensor.GetName());
 		query.bindValue(":type_id", sensor.GetType()->GetId());
@@ -112,11 +112,11 @@ namespace SmartCampus {
 
 		{
 			boost::mutex::scoped_lock lock(m_selfProtectionMutex);
-			//Выполнение запроса
+			//Р’С‹РїРѕР»РЅРµРЅРёРµ Р·Р°РїСЂРѕСЃР°
 			if (!query.exec())
 			{
-				//Ошибка выполнение запроса
-				if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("Ошибка выполнения запроса в таблице %1. %2").arg(table).arg(query.lastError().text()));
+				//РћС€РёР±РєР° РІС‹РїРѕР»РЅРµРЅРёРµ Р·Р°РїСЂРѕСЃР°
+				if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("РћС€РёР±РєР° РІС‹РїРѕР»РЅРµРЅРёСЏ Р·Р°РїСЂРѕСЃР° РІ С‚Р°Р±Р»РёС†Рµ %1. %2").arg(table).arg(query.lastError().text()));
 				return;
 			}
 		}
@@ -127,28 +127,28 @@ namespace SmartCampus {
 		QVector<Database::DbRoomPtr> result = {};
 		if (!IsOpened())
 		{
-			//База неоткрыта
-			if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("Не удалось получить список комнат. Нет подключения к БД."));
+			//Р‘Р°Р·Р° РЅРµРѕС‚РєСЂС‹С‚Р°
+			if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("РќРµ СѓРґР°Р»РѕСЃСЊ РїРѕР»СѓС‡РёС‚СЊ СЃРїРёСЃРѕРє РєРѕРјРЅР°С‚. РќРµС‚ РїРѕРґРєР»СЋС‡РµРЅРёСЏ Рє Р‘Р”."));
 			return result;
 		}
 
-		//Для запроса
+		//Р”Р»СЏ Р·Р°РїСЂРѕСЃР°
 		QSqlQuery query(*this);
-		//Название таблицы
+		//РќР°Р·РІР°РЅРёРµ С‚Р°Р±Р»РёС†С‹
 		static const QString table = "Rooms";
-		//Строка SQL запроса
+		//РЎС‚СЂРѕРєР° SQL Р·Р°РїСЂРѕСЃР°
 		static const QString cmd = QString("SELECT * FROM %1").arg(table);
 		{
 			boost::mutex::scoped_lock lock(m_selfProtectionMutex);
-			//Выполнение запроса
+			//Р’С‹РїРѕР»РЅРµРЅРёРµ Р·Р°РїСЂРѕСЃР°
 			if (!query.exec(cmd))
 			{
-				//Ошибка выполнение запроса
-				if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("Ошибка выполнения запроса в таблице %1. %2").arg(table).arg(query.lastError().text()));
+				//РћС€РёР±РєР° РІС‹РїРѕР»РЅРµРЅРёРµ Р·Р°РїСЂРѕСЃР°
+				if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("РћС€РёР±РєР° РІС‹РїРѕР»РЅРµРЅРёСЏ Р·Р°РїСЂРѕСЃР° РІ С‚Р°Р±Р»РёС†Рµ %1. %2").arg(table).arg(query.lastError().text()));
 				return result;
 			}
 		}
-		//Пока можно читать результат
+		//РџРѕРєР° РјРѕР¶РЅРѕ С‡РёС‚Р°С‚СЊ СЂРµР·СѓР»СЊС‚Р°С‚
 		while (query.next())
 		{
 			result.append(Database::DbRoomPtr(new Database::DbRoom(query.value(2).toUInt(), query.value(0).toString(), query.value(1).toUInt(), query.value(3).toUInt())));
@@ -161,29 +161,29 @@ namespace SmartCampus {
 		QVector<Database::DbElectricalSensorTypePtr> result = {};
 		if (!IsOpened())
 		{
-			//База неоткрыта
-			if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("Не удалось получить список типов датчиков. Нет подключения к БД."));
+			//Р‘Р°Р·Р° РЅРµРѕС‚РєСЂС‹С‚Р°
+			if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("РќРµ СѓРґР°Р»РѕСЃСЊ РїРѕР»СѓС‡РёС‚СЊ СЃРїРёСЃРѕРє С‚РёРїРѕРІ РґР°С‚С‡РёРєРѕРІ. РќРµС‚ РїРѕРґРєР»СЋС‡РµРЅРёСЏ Рє Р‘Р”."));
 			return result;
 		}
 
-		//Для запроса
+		//Р”Р»СЏ Р·Р°РїСЂРѕСЃР°
 		QSqlQuery query(*this);
-		//Название таблицы
+		//РќР°Р·РІР°РЅРёРµ С‚Р°Р±Р»РёС†С‹
 		static const QString table = "ElectricalSensorType";
-		//Строка SQL запроса
+		//РЎС‚СЂРѕРєР° SQL Р·Р°РїСЂРѕСЃР°
 		static const QString cmd = QString("SELECT * FROM %1").arg(table);
 
 		{
 			boost::mutex::scoped_lock lock(m_selfProtectionMutex);
-			//Выполнение запроса
+			//Р’С‹РїРѕР»РЅРµРЅРёРµ Р·Р°РїСЂРѕСЃР°
 			if (!query.exec(cmd))
 			{
-				//Ошибка выполнение запроса
-				if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("Ошибка выполнения запроса в таблице %1. %2").arg(table).arg(query.lastError().text()));
+				//РћС€РёР±РєР° РІС‹РїРѕР»РЅРµРЅРёРµ Р·Р°РїСЂРѕСЃР°
+				if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("РћС€РёР±РєР° РІС‹РїРѕР»РЅРµРЅРёСЏ Р·Р°РїСЂРѕСЃР° РІ С‚Р°Р±Р»РёС†Рµ %1. %2").arg(table).arg(query.lastError().text()));
 				return result;
 			}
 		}
-		//Пока можно читать результат
+		//РџРѕРєР° РјРѕР¶РЅРѕ С‡РёС‚Р°С‚СЊ СЂРµР·СѓР»СЊС‚Р°С‚
 		while (query.next())
 		{
 			result.append(Database::DbElectricalSensorTypePtr(new Database::DbElectricalSensorType(query.value(1).toUInt(), query.value(0).toString(), query.value(2).toString())));
@@ -196,29 +196,29 @@ namespace SmartCampus {
 		QVector<Database::DbBuildingPtr> result = {};
 		if (!IsOpened())
 		{
-			//База неоткрыта
-			if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("Не удалось получить список зданий. Нет подключения к БД."));
+			//Р‘Р°Р·Р° РЅРµРѕС‚РєСЂС‹С‚Р°
+			if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("РќРµ СѓРґР°Р»РѕСЃСЊ РїРѕР»СѓС‡РёС‚СЊ СЃРїРёСЃРѕРє Р·РґР°РЅРёР№. РќРµС‚ РїРѕРґРєР»СЋС‡РµРЅРёСЏ Рє Р‘Р”."));
 			return result;
 		}
 
-		//Для запроса
+		//Р”Р»СЏ Р·Р°РїСЂРѕСЃР°
 		QSqlQuery query(*this);
-		//Название таблицы
+		//РќР°Р·РІР°РЅРёРµ С‚Р°Р±Р»РёС†С‹
 		static const QString table = "buildings";
-		//Строка SQL запроса
+		//РЎС‚СЂРѕРєР° SQL Р·Р°РїСЂРѕСЃР°
 		static const QString cmd = QString("SELECT * FROM %1").arg(table);
 
 		{
 			boost::mutex::scoped_lock lock(m_selfProtectionMutex);
-			//Выполнение запроса
+			//Р’С‹РїРѕР»РЅРµРЅРёРµ Р·Р°РїСЂРѕСЃР°
 			if (!query.exec(cmd))
 			{
-				//Ошибка выполнение запроса
-				if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("Ошибка выполнения запроса в таблице %1. %2").arg(table).arg(query.lastError().text()));
+				//РћС€РёР±РєР° РІС‹РїРѕР»РЅРµРЅРёРµ Р·Р°РїСЂРѕСЃР°
+				if (m_ptrApplication) m_ptrApplication->UpdateStatus(QString::fromLocal8Bit("РћС€РёР±РєР° РІС‹РїРѕР»РЅРµРЅРёСЏ Р·Р°РїСЂРѕСЃР° РІ С‚Р°Р±Р»РёС†Рµ %1. %2").arg(table).arg(query.lastError().text()));
 				return result;
 			}
 		}
-		//Пока можно читать результат
+		//РџРѕРєР° РјРѕР¶РЅРѕ С‡РёС‚Р°С‚СЊ СЂРµР·СѓР»СЊС‚Р°С‚
 		while (query.next())
 		{
 			Database::Coordinates coordinates;

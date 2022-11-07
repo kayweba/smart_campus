@@ -34,7 +34,7 @@ namespace SmartCampus {
 				}
 			}
 			else {
-				m_lastError = "Файла конфигурации " + m_jsonFilePath + " не существует.";
+				m_lastError = "Р¤Р°Р№Р»Р° РєРѕРЅС„РёРіСѓСЂР°С†РёРё " + m_jsonFilePath + " РЅРµ СЃСѓС‰РµСЃС‚РІСѓРµС‚.";
 				m_internalState = StateType::FILE_NOT_FOUND;
 				if (!errorSignal.empty()) errorSignal();
 			}

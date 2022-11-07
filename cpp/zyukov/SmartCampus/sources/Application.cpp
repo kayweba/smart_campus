@@ -1,6 +1,5 @@
 #include <Application.h>
 #include <DBManager.h>
-#include <ElectricalSensor.h>
 #include <DbValueGenerator.h>
 #include <BuildingTreeModel.h>
 #include <BuildingTreeItem.h>
@@ -8,15 +7,17 @@
 namespace SmartCampus {
 
 	Application::Application(const int width, const int height) noexcept :
-	ui(new Ui::MainWindow()) {
+	ui(new Ui::MainWindow()),
+	m_guiBuildings(ui->selectedRoomsView, "")
+	{
 		ui->setupUi(this);
 		m_ptrBuildingTreeModel = Gui::BuildingTreeModelPtr(new Gui::BuildingTreeModel());
 		ui->buildingTree->setModel(m_ptrBuildingTreeModel.get());
 		ui->selectedRoomLayout->setAlignment(Qt::AlignmentFlag::AlignTop);
 		ptrBuildingTreeRoomContextMenu = new QMenu(ui->buildingTree);
 		ptrBuildingTreeFloorContextMenu = new QMenu(ui->buildingTree);
-		ptrTransferSensorAction = new QAction(QString::fromLocal8Bit("Добавить аудиторию к наблюдению"), ptrBuildingTreeRoomContextMenu);
-		ptrTransferFloorAction = new QAction(QString::fromLocal8Bit("Добавить этаж к наблюдению"), ptrBuildingTreeFloorContextMenu);
+		ptrTransferSensorAction = new QAction(QString::fromLocal8Bit("Р”РѕР±Р°РІРёС‚СЊ Р°СѓРґРёС‚РѕСЂРёСЋ Рє РЅР°Р±Р»СЋРґРµРЅРёСЋ"), ptrBuildingTreeRoomContextMenu);
+		ptrTransferFloorAction = new QAction(QString::fromLocal8Bit("Р”РѕР±Р°РІРёС‚СЊ СЌС‚Р°Р¶ Рє РЅР°Р±Р»СЋРґРµРЅРёСЋ"), ptrBuildingTreeFloorContextMenu);
 		ui->buildingTree->setContextMenuPolicy(Qt::CustomContextMenu);
 		ui->buildingTree->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
 		ptrBuildingTreeRoomContextMenu->addAction(ptrTransferSensorAction);
@@ -31,13 +32,11 @@ namespace SmartCampus {
 		m_width = width;
 		m_height = height;
 		countOfSensors = 0;
-		ui->statusbar->showMessage(QString::fromLocal8Bit("Программа запущена"));
+		ui->statusbar->showMessage(QString::fromLocal8Bit("РџСЂРѕРіСЂР°РјРјР° Р·Р°РїСѓС‰РµРЅР°"));
 		ConnectToDb("QSQLITE");
 		generator = Database::ValueGeneratorPtr(new Database::ValueGenerator(database, "settings.json"));
 		generator->ConnectErrorSignal(boost::bind(&Application::OnGeneratorEmitsErrorSignal, this));
 		treeIsVisible = true;
-		// Initialize map empty
-		m_guiBuildingsPtr.clear();
 		LoadData();
 		// Initialize cache array {0}
 		BuildTree();
@@ -50,6 +49,9 @@ namespace SmartCampus {
 		delete(ptrBuildingTreeFloorContextMenu);
 		delete(ptrTransferSensorAction);
 		delete(ptrTransferFloorAction);
+		while (auto wItem = ui->selectedRoomLayout->takeAt(0)) {
+			delete wItem;
+		}
 		delete(ui);
 	}
 
@@ -93,39 +95,28 @@ namespace SmartCampus {
 			uint32_t buildingId = m_ptrBuildingTreeModel->data(selectedIndex.parent(), Qt::DisplayRole, 1).toUInt();
 			QString buildingName = m_ptrBuildingTreeModel->data(selectedIndex.parent().parent(), Qt::DisplayRole, 0).toString();
 			uint32_t roomNumber = m_ptrBuildingTreeModel->data(selectedIndex, Qt::DisplayRole, 0).toUInt();
-			// Try to find building in map
-			auto buildingFound = m_guiBuildingsPtr.find(buildingId);
-			// Adding new building widget if not found
-			if (buildingFound == m_guiBuildingsPtr.end()) {
-				buildingFound = m_guiBuildingsPtr.insert(m_ptrBuildingTreeModel->data(selectedIndex.parent(), Qt::DisplayRole, 1).toUInt(),
-					Gui::GuiBuildingsPtr(
-						new Gui::BaseContainer<std::shared_ptr<Gui::BaseContainer<Gui::ElectricalSensorPtr>>>
-						(ui->campusView, QString::fromLocal8Bit("%1").arg(buildingName))
-					));
-				ui->selectedRoomLayout->addWidget(buildingFound.value().get());
-			}
 
-			// Try to find room in building widget
-			auto roomFound = buildingFound.value()->findWidget(roomId);
-			if (roomFound == nullptr) {
-				// Adding new room widget if not found
-				Gui::GuiRoomsPtr roomWidget = Gui::GuiRoomsPtr(
-					new Gui::BaseContainer< Gui::ElectricalSensorPtr >(
-						buildingFound.value().get(), QString::fromLocal8Bit("Аудитория №%1").arg(roomNumber)
-						));
-				roomFound = buildingFound.value()->AddWidget(roomWidget, roomId);
+			// Try to find nested building
+			auto foundBuilding = m_guiBuildings.findWidget(buildingId);
+			if (foundBuilding.lock() == nullptr) {
+				foundBuilding = m_guiBuildings.AddWidget(new Gui::GuiBuildings(&m_guiBuildings, QString::fromLocal8Bit("%1").arg(buildingName)), buildingId);
 			}
-
-			for (auto sensor : m_electricalSensors) {
+			// Try to find nested room
+			auto foundRoom = foundBuilding.lock()->findWidget(roomId);
+			if (foundRoom.lock() == nullptr) {
+				foundRoom = foundBuilding.lock()->AddWidget(new Gui::GuiRooms(foundBuilding.lock().get(), QString::fromLocal8Bit("РђСѓРґРёС‚РѕСЂРёСЏ в„–%1").arg(roomNumber)), roomId);
+			}
+			for (auto & sensor : m_electricalSensors) {
 				if (sensor->GetRoomId() == roomId) {
-					// If there is no sensor yet
-					if (roomFound->findWidget(sensor->GetId()) == nullptr) {
-						// Adding sensor to inspect
-						roomFound->AddWidget(Gui::ElectricalSensorPtr(new Gui::ElectricalSensor(roomFound.get(), sensor)), sensor->GetId());
+					// Try to find nested sensor
+					auto foundSensor = foundRoom.lock()->findWidget(sensor->GetId());
+					if (foundSensor.lock() == nullptr) {
+						foundSensor = foundRoom.lock()->AddWidget(new Gui::ElectricalSensor(foundRoom.lock().get(), sensor), sensor->GetId());
 						countOfSensors++;
 					}
 				}
 			}
+			ui->selectedRoomLayout->addWidget(foundBuilding.lock().get());
 		}
 	}
 
@@ -134,6 +125,8 @@ namespace SmartCampus {
 		QModelIndexList indexes = ui->buildingTree->selectionModel()->selectedIndexes();
 		if (indexes.size() == 1) {
 			QModelIndex selectedIndex = indexes.at(0);
+			// Prepare all data to widget's processing
+			// TODO РґРѕР±Р°РІРёС‚СЊ РІ СЃРїРёСЃРѕРє РѕС‚СЃР»РµР¶РёРІР°РЅРёСЏ РІСЃРµ РєР°Р±РёРЅРµС‚С‹ РёР· СѓРєР°Р·Р°РЅРЅРѕРіРѕ СЌС‚Р°Р¶Р° (РѕРїСЂРµРґРµР»СЏС‚СЊ РЅРѕРјРµСЂ Р°СѓРґРёС‚РѕСЂРёРё РїРѕ РїРµСЂРІРѕР№ С†РёС„СЂРµ)
 		}
 	}
 
@@ -144,14 +137,6 @@ namespace SmartCampus {
 		m_electricalSensors = database->GetElectricalSensors();
 		m_rooms = database->GetRooms();
 		m_buildings = database->GetBuildings();
-/*
-		for (auto & sensor : m_electricalSensors) {
-			auto & found = m_inspectedSensors.find(sensor->GetId());
-			if (found != m_inspectedSensors.end()) {
-
-			}
-		}
-*/
 	}
 
 	void Application::UpdateUi()
@@ -164,53 +149,55 @@ namespace SmartCampus {
 			BuildTree();
 		}
 		// Iterate buildings
-		for (auto & guiBuilding = m_guiBuildingsPtr.begin(); guiBuilding != m_guiBuildingsPtr.end();) {
+		QVector<uint32_t> restInPeaceBuildingWidget = {};
+		for (int i = 0; i < m_guiBuildings.GetWidgetsCount(); i++) {
+			auto guiBuilding = m_guiBuildings.getWidget(i);
+			auto guiBuildingPtr = guiBuilding.lock();
 			// Iterate rooms
-			for (uint32_t i = 0; i < guiBuilding.value()->GetWidgetsCount(); i++) {
-				auto guiRoom = guiBuilding.value()->getWidget(i);
-				if (guiRoom != nullptr) {
-					// Update all sensors
-					for (uint32_t j = 0; j < guiRoom->GetWidgetsCount(); j++) {
-						auto guiSensor = guiRoom->getWidget(j);
-						if (guiSensor != nullptr) {
-							if (!guiSensor->shouldBeDeleted) {
-								auto sensor = std::find_if(m_electricalSensors.begin(), m_electricalSensors.end(), [guiSensor](Database::DbElectricalSensorPtr& seek) {
-									return seek->GetId() == guiSensor->GetId();
-									});
-								if (sensor != m_electricalSensors.end()) {
-									// Update sensor's data
-									guiSensor->SetName((*sensor)->GetName());
-									guiSensor->SetState((*sensor)->GetState());
-									guiSensor->SetValue((*sensor)->GetValue());
-									guiSensor->SetType((*sensor)->GetType());
-									guiSensor->SetUnit((*sensor)->GetType()->GetUnit());
-									guiSensor->SetSensorPtr(*sensor);
-								}
-							}
-							// TODO разобраться с удалением умного указателя на Gui::ElectricalSensor (кто-то убивает его раньше, чем это сделает shared_ptr)
-							// TODO:2 не удаляются аудитории, у которых изначально не было датчиков
-							else { // Sensor should be deleted
-								// Delete sensor from update
-								guiRoom->DeleteWidget(guiSensor);
-								countOfSensors--;
-								if (guiRoom->GetWidgetsCount() == 0) {
-									// Delete room
-									guiBuilding.value()->DeleteWidget(guiRoom);
-									if (guiBuilding.value()->GetWidgetsCount() == 0) {
-										// Delete building
-										//guiBuilding = m_guiBuildingsPtr.erase(guiBuilding);
-										//continue;
-									}
-								}
+			QVector<uint32_t> restInPeaceRoomWidget = {};
+			for (int j = 0; j < guiBuildingPtr->GetWidgetsCount(); j++) {
+				auto guiRoom = guiBuildingPtr->getWidget(j);
+				auto guiRoomPtr = guiRoom.lock();
+				// Update all sensors
+				for (int k = 0; k < guiRoomPtr->GetWidgetsCount(); k++) {
+					auto guiSensor = guiRoomPtr->getWidget(k);
+					auto guiSensorPtr = guiSensor.lock();
+						if (!guiSensorPtr->shouldBeDeleted) {
+							auto sensor = std::find_if(m_electricalSensors.begin(), m_electricalSensors.end(), [guiSensorPtr](Database::DbElectricalSensorPtr& seek) {
+								return seek->GetId() == guiSensorPtr->GetId();
+							});
+
+							if (sensor != m_electricalSensors.end()) {
+								// Update sensor's data
+								guiSensorPtr->SetName((*sensor)->GetName());
+								guiSensorPtr->SetState((*sensor)->GetState());
+								guiSensorPtr->SetValue((*sensor)->GetValue());
+								guiSensorPtr->SetType((*sensor)->GetType());
+								guiSensorPtr->SetUnit((*sensor)->GetType()->GetUnit());
+								guiSensorPtr->SetSensorPtr(*sensor);
 							}
 						}
-					}
+						else { // Need to remove sensor widget
+							guiRoomPtr->DeleteWidget(guiSensorPtr->GetId());
+							countOfSensors--;
+						}
 				}
+				if (guiRoomPtr->GetWidgetsCount() == 0)
+					restInPeaceRoomWidget.push_back(guiBuildingPtr->getId(j));
 			}
-			guiBuilding++;
+			// Remove room widgets if needed
+			for (int it = 0; it < restInPeaceRoomWidget.size(); it++)
+				guiBuildingPtr->DeleteWidget(restInPeaceRoomWidget[it]);
+
+			if (guiBuildingPtr->GetWidgetsCount() == 0)
+				restInPeaceBuildingWidget.push_back(m_guiBuildings.getId(i));
 		}
-		// TODO количество отслеживаемых датчиков обновляется на корректное значение только если датчики не удаляются.
-		ui->sensCountLabel->setText(QString::fromLocal8Bit("Отслеживаемые датчики: %1").arg(countOfSensors));
+		// Remove building widget if needed
+		for (int it = 0; it < restInPeaceBuildingWidget.size(); it++) {
+			ui->selectedRoomLayout->removeWidget(m_guiBuildings.findWidget(restInPeaceBuildingWidget[it]).lock().get());
+			m_guiBuildings.DeleteWidget(restInPeaceBuildingWidget[it]);
+		}
+		ui->sensCountLabel->setText(QString::fromLocal8Bit("РћС‚СЃР»РµР¶РёРІР°РµРјС‹Рµ РґР°С‚С‡РёРєРё: %1").arg(countOfSensors));
 	}
 
 	void Application::OnStartGeneratorClicked()
@@ -265,7 +252,7 @@ namespace SmartCampus {
 		for (auto& building : m_buildings) {
 			QModelIndex index = m_ptrBuildingTreeModel->addItem({ building->GetDescription(), building->GetId(), building->GetBuildingNumber(), building->GetCountOfFloors() });
 			for (size_t floor = 0; floor < building->GetCountOfFloors(); floor++) {
-				QModelIndex floorIndex = m_ptrBuildingTreeModel->addItem({ QString::fromLocal8Bit("%1 этаж").arg(floor + 1), building->GetId() }, index);
+				QModelIndex floorIndex = m_ptrBuildingTreeModel->addItem({ QString::fromLocal8Bit("%1 СЌС‚Р°Р¶").arg(floor + 1), building->GetId() }, index);
 				for (auto room : m_rooms) {
 					int firstDigit;
 					// Calculate first digit in room number and check if its matches with the floor number

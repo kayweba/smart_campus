@@ -1,5 +1,4 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
-	<file alias="close.png">png/close.png</file>
 </qresource>
 </RCC>

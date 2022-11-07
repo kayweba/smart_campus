@@ -12,7 +12,7 @@ namespace SmartCampus { namespace Gui {
 
 			BuildingItem *  child(uint32_t row);
 			uint32_t childCount() const;
-			uint32_t columnCount() const;
+			int columnCount() const;
 			QVariant data(uint32_t column) const;
 			uint32_t row() const;
 			BuildingItem * parentItem();		
