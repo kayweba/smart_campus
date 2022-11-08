@@ -124,6 +124,7 @@ namespace SmartCampus {	namespace Gui {
 		QWidget* m_parent;
 		Database::DbElectricalSensorTypePtr m_ptrType;
 		Database::DbElectricalSensorPtr m_ptrSensor;
+		QString stylePattern;
 	};
 
 }} // SmartCampus::Gui

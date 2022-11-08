@@ -3,6 +3,12 @@
 #include <stdafx.h>
 
 namespace SmartCampus { namespace Database {
+	enum SensorType {
+		LightType = 1,
+		PlugType = 2,
+		HeatType = 3
+	};
+
 	class BaseSize {
 	protected:
 		virtual unsigned int calculateSize() = 0;

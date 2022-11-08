@@ -19,6 +19,17 @@ namespace SmartCampus { namespace Gui {
 		connect(ui->closeButton, &QPushButton::clicked, this, &ElectricalSensor::OnCloseButtonClicked);
 		ui->closeButton->setMaximumSize(QSize(20, 20));
 		shouldBeDeleted = false;
+		stylePattern.clear();
+
+		if (ptrSensor->GetType()->GetId() == Database::SensorType::LightType)
+			stylePattern = "background-image: url(:/light.png);";
+		else if (ptrSensor->GetType()->GetId() == Database::SensorType::PlugType)
+			stylePattern = "background-image: url(:/plug.png);";
+		else if (ptrSensor->GetType()->GetId() == Database::SensorType::HeatType)
+			stylePattern = "background-image: url(:/heat.png);";
+		ui->labelState->setStyleSheet(stylePattern);
+		ui->labelState->setMinimumSize(QSize(20, 20));
+		ui->labelState->setMaximumSize(QSize(20, 20));
 		adjustSize();
 	}
 
@@ -55,15 +66,11 @@ namespace SmartCampus { namespace Gui {
 	{
 		Database::DbElectricalSensor::SetState(state);
 		if (!state) {
-			ui->labelState->setStyleSheet("background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, \
-				stop:0 rgba(255, 0, 0, 255), stop:1 rgba(255, 255, 255, 0)); \
-				border - radius: 8px;");
+			ui->labelState->setStyleSheet(stylePattern + "background-color: rgba(255, 0, 0, 100); border-radius: 4px;");
 			SetValue(0.0);
 		}
 		else {
-			ui->labelState->setStyleSheet("background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, \
-				stop:0 rgba(0, 255, 0, 255), stop:1 rgba(255, 255, 255, 0)); \
-				border - radius: 8px;");
+			ui->labelState->setStyleSheet(stylePattern + "background-color: rgba(0, 255, 0, 100); border-radius: 4px;");
 		}
 	}
 

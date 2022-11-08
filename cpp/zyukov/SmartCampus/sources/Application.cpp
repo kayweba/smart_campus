@@ -92,7 +92,7 @@ namespace SmartCampus {
 			QModelIndex selectedIndex = indexes.at(0);
 			// Prepare all data to widget's processing
 			uint32_t roomId = m_ptrBuildingTreeModel->data(selectedIndex, Qt::DisplayRole, 1).toUInt();
-			uint32_t buildingId = m_ptrBuildingTreeModel->data(selectedIndex.parent(), Qt::DisplayRole, 1).toUInt();
+			uint32_t buildingId = m_ptrBuildingTreeModel->data(selectedIndex.parent().parent(), Qt::DisplayRole, 1).toUInt();
 			QString buildingName = m_ptrBuildingTreeModel->data(selectedIndex.parent().parent(), Qt::DisplayRole, 0).toString();
 			uint32_t roomNumber = m_ptrBuildingTreeModel->data(selectedIndex, Qt::DisplayRole, 0).toUInt();
 
@@ -100,6 +100,7 @@ namespace SmartCampus {
 			auto foundBuilding = m_guiBuildings.findWidget(buildingId);
 			if (foundBuilding.lock() == nullptr) {
 				foundBuilding = m_guiBuildings.AddWidget(new Gui::GuiBuildings(&m_guiBuildings, QString::fromLocal8Bit("%1").arg(buildingName)), buildingId);
+				ui->selectedRoomLayout->addWidget(foundBuilding.lock().get());
 			}
 			// Try to find nested room
 			auto foundRoom = foundBuilding.lock()->findWidget(roomId);
@@ -116,17 +117,49 @@ namespace SmartCampus {
 					}
 				}
 			}
-			ui->selectedRoomLayout->addWidget(foundBuilding.lock().get());
 		}
 	}
 
 	void Application::OnTransferFloorClicked(bool checked)
 	{
 		QModelIndexList indexes = ui->buildingTree->selectionModel()->selectedIndexes();
-		if (indexes.size() == 1) {
+		if (indexes.size() > 0) {
 			QModelIndex selectedIndex = indexes.at(0);
 			// Prepare all data to widget's processing
 			// TODO добавить в список отслеживания все кабинеты из указанного этажа (определять номер аудитории по первой цифре)
+			uint32_t buildingId = m_ptrBuildingTreeModel->data(selectedIndex.parent(), Qt::DisplayRole, 1).toUInt();
+			QString buildingName = m_ptrBuildingTreeModel->data(selectedIndex.parent(), Qt::DisplayRole, 0).toString();
+			// Selected index - current floor
+			size_t currentFloor = m_ptrBuildingTreeModel->data(selectedIndex, Qt::DisplayRole, 2).toUInt();
+			// Try to find nested building
+			auto foundBuilding = m_guiBuildings.findWidget(buildingId);
+			if (foundBuilding.lock() == nullptr) {
+				foundBuilding = m_guiBuildings.AddWidget(new Gui::GuiBuildings(&m_guiBuildings, QString::fromLocal8Bit("%1").arg(buildingName)), buildingId);
+				ui->selectedRoomLayout->addWidget(foundBuilding.lock().get());
+			}
+			auto foundBuildingPtr = foundBuilding.lock();
+			int childCount = m_ptrBuildingTreeModel->rowCount(selectedIndex);
+			for (int i = 0; i < childCount; i++) {
+				// Get all child indexes
+				uint32_t roomId = selectedIndex.child(i, 1).data(Qt::DisplayRole).toUInt();
+				uint32_t roomNumber = selectedIndex.child(i, 0).data(Qt::DisplayRole).toUInt();
+				auto foundRoom = foundBuildingPtr->findWidget(roomId);
+				if (foundRoom.lock() == nullptr) {
+					foundRoom = foundBuildingPtr->AddWidget(new Gui::GuiRooms(foundBuildingPtr.get(), QString::fromLocal8Bit("Аудитория №%1").arg(roomNumber)), roomId);
+				}
+				auto foundRoomPtr = foundRoom.lock();
+				for (auto& sensor : m_electricalSensors) {
+					if (sensor->GetRoomId() == roomId) {
+						// Try to find nested sensor
+						auto foundRoomPtr = foundRoom.lock();
+						auto foundSensor = foundRoomPtr->findWidget(sensor->GetId());
+						if (foundSensor.lock() == nullptr) {
+							foundSensor = foundRoom.lock()->AddWidget(new Gui::ElectricalSensor(foundRoom.lock().get(), sensor), sensor->GetId());
+							countOfSensors++;
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -252,7 +285,7 @@ namespace SmartCampus {
 		for (auto& building : m_buildings) {
 			QModelIndex index = m_ptrBuildingTreeModel->addItem({ building->GetDescription(), building->GetId(), building->GetBuildingNumber(), building->GetCountOfFloors() });
 			for (size_t floor = 0; floor < building->GetCountOfFloors(); floor++) {
-				QModelIndex floorIndex = m_ptrBuildingTreeModel->addItem({ QString::fromLocal8Bit("%1 этаж").arg(floor + 1), building->GetId() }, index);
+				QModelIndex floorIndex = m_ptrBuildingTreeModel->addItem({ QString::fromLocal8Bit("%1 этаж").arg(floor + 1), building->GetId(), (floor + 1) }, index);
 				for (auto room : m_rooms) {
 					int firstDigit;
 					// Calculate first digit in room number and check if its matches with the floor number
