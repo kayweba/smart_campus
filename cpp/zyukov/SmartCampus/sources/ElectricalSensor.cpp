@@ -10,6 +10,7 @@ namespace SmartCampus { namespace Gui {
 		m_parent = parent;
 		m_ptrSensor = ptrSensor;
 		ui->setupUi(this);
+		this->setMinimumSize(this->size());
 		if (ptrSensor) {
 			SetName(ptrSensor->GetName());
 			SetValue(ptrSensor->GetValue());

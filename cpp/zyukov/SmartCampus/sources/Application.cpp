@@ -13,7 +13,7 @@ namespace SmartCampus {
 		ui->setupUi(this);
 		m_ptrBuildingTreeModel = Gui::BuildingTreeModelPtr(new Gui::BuildingTreeModel());
 		ui->buildingTree->setModel(m_ptrBuildingTreeModel.get());
-		ui->selectedRoomLayout->setAlignment(Qt::AlignmentFlag::AlignTop);
+		ui->selectedScrollArea->setWidget(&m_guiBuildings);
 		ptrBuildingTreeRoomContextMenu = new QMenu(ui->buildingTree);
 		ptrBuildingTreeFloorContextMenu = new QMenu(ui->buildingTree);
 		ptrTransferSensorAction = new QAction(QString::fromLocal8Bit("Добавить аудиторию к наблюдению"), ptrBuildingTreeRoomContextMenu);
@@ -38,7 +38,6 @@ namespace SmartCampus {
 		generator->ConnectErrorSignal(boost::bind(&Application::OnGeneratorEmitsErrorSignal, this));
 		treeIsVisible = true;
 		LoadData();
-		// Initialize cache array {0}
 		BuildTree();
 		this->show();
 	}
@@ -49,9 +48,9 @@ namespace SmartCampus {
 		delete(ptrBuildingTreeFloorContextMenu);
 		delete(ptrTransferSensorAction);
 		delete(ptrTransferFloorAction);
-		while (auto wItem = ui->selectedRoomLayout->takeAt(0)) {
+		/*while (auto wItem = ui->selectedRoomLayout->takeAt(0)) {
 			delete wItem;
-		}
+		}*/
 		delete(ui);
 	}
 
@@ -100,7 +99,6 @@ namespace SmartCampus {
 			auto foundBuilding = m_guiBuildings.findWidget(buildingId);
 			if (foundBuilding.lock() == nullptr) {
 				foundBuilding = m_guiBuildings.AddWidget(new Gui::GuiBuildings(&m_guiBuildings, QString::fromLocal8Bit("%1").arg(buildingName)), buildingId);
-				ui->selectedRoomLayout->addWidget(foundBuilding.lock().get());
 			}
 			// Try to find nested room
 			auto foundRoom = foundBuilding.lock()->findWidget(roomId);
@@ -135,7 +133,6 @@ namespace SmartCampus {
 			auto foundBuilding = m_guiBuildings.findWidget(buildingId);
 			if (foundBuilding.lock() == nullptr) {
 				foundBuilding = m_guiBuildings.AddWidget(new Gui::GuiBuildings(&m_guiBuildings, QString::fromLocal8Bit("%1").arg(buildingName)), buildingId);
-				ui->selectedRoomLayout->addWidget(foundBuilding.lock().get());
 			}
 			auto foundBuildingPtr = foundBuilding.lock();
 			int childCount = m_ptrBuildingTreeModel->rowCount(selectedIndex);
@@ -227,7 +224,6 @@ namespace SmartCampus {
 		}
 		// Remove building widget if needed
 		for (int it = 0; it < restInPeaceBuildingWidget.size(); it++) {
-			ui->selectedRoomLayout->removeWidget(m_guiBuildings.findWidget(restInPeaceBuildingWidget[it]).lock().get());
 			m_guiBuildings.DeleteWidget(restInPeaceBuildingWidget[it]);
 		}
 		ui->sensCountLabel->setText(QString::fromLocal8Bit("Отслеживаемые датчики: %1").arg(countOfSensors));

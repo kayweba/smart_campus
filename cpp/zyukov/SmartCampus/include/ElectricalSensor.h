@@ -14,13 +14,15 @@ namespace SmartCampus {	namespace Gui {
 				this->setFrameStyle(QFrame::Panel | QFrame::Raised);
 				if (!caption.isEmpty()) {
 					uiLabel = new QLabel(caption, this);
+					uiLabel->setMargin(2);
+					uiLabel->setContentsMargins(QMargins(5, 0, 0, 0));
 					uiLabel->adjustSize();
 				}
 				else uiLabel = nullptr;
 				m_parent = parent;
 				m_internalLayout = new QVBoxLayout(this);
 				m_internalLayout->setSizeConstraint(QLayout::SizeConstraint::SetMaximumSize);
-				m_internalLayout->setSpacing(10);
+				m_internalLayout->setSpacing(12);
 				m_internalLayout->setContentsMargins(QMargins(10, 15, 10, 15));
 				m_arrWidgets.clear();
 				this->setLayout(m_internalLayout);
