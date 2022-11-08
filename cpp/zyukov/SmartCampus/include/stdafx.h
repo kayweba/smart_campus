@@ -10,6 +10,7 @@
 #include <QPushButton>
 #include <QTimer>
 #include <QVBoxLayout>
+#include <QDesktopWidget>
 #include <map>
 #include <memory>
 #include <boost/property_tree/ptree.hpp>

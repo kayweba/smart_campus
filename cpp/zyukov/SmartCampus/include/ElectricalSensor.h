@@ -9,16 +9,8 @@ namespace SmartCampus {	namespace Gui {
 	template <class T>
 	class BaseContainer : public QFrame {
 		public:
-			explicit BaseContainer(QWidget* parent, const QString& caption) : QFrame(parent)
+			explicit BaseContainer(QWidget* parent, const QString& caption, bool canHide = true) : QFrame(parent)
 			{
-				this->setFrameStyle(QFrame::Panel | QFrame::Raised);
-				if (!caption.isEmpty()) {
-					uiLabel = new QLabel(caption, this);
-					uiLabel->setMargin(2);
-					uiLabel->setContentsMargins(QMargins(5, 0, 0, 0));
-					uiLabel->adjustSize();
-				}
-				else uiLabel = nullptr;
 				m_parent = parent;
 				m_internalLayout = new QVBoxLayout(this);
 				m_internalLayout->setSizeConstraint(QLayout::SizeConstraint::SetMaximumSize);
@@ -26,18 +18,50 @@ namespace SmartCampus {	namespace Gui {
 				m_internalLayout->setContentsMargins(QMargins(10, 15, 10, 15));
 				m_arrWidgets.clear();
 				this->setLayout(m_internalLayout);
+				if (canHide) {
+					m_header = new QFrame(this);
+					m_headerLayout = new QHBoxLayout(m_header);
+					m_header->setLayout(m_headerLayout);
+					this->setFrameStyle(QFrame::Panel | QFrame::Raised);
+					if (!caption.isEmpty()) {
+						uiLabel = new QLabel(caption, m_header);
+						uiLabel->setMargin(2);
+						uiLabel->setContentsMargins(QMargins(5, 0, 0, 0));
+						uiLabel->adjustSize();
+					}
+					else uiLabel = nullptr;
+					m_headerLayout->addWidget(uiLabel, 0, Qt::AlignmentFlag::AlignLeft | Qt::AlignmentFlag::AlignVCenter);
+					//Create hide button
+					m_hideButton = new QPushButton("-", m_header);
+					m_hideButton->setSizePolicy(QSizePolicy(QSizePolicy::Policy::Fixed, QSizePolicy::Policy::Fixed));
+					m_hideButton->setFixedSize(QSize(17, 17));
+					hidingState = false;
+					connect(m_hideButton, &QPushButton::clicked, this, &BaseContainer::onHideButtonClicked);
+					m_headerLayout->addWidget(m_hideButton, 0, Qt::AlignmentFlag::AlignRight | Qt::AlignmentFlag::AlignVCenter);
+					m_header->setSizePolicy(QSizePolicy(QSizePolicy::Policy::Preferred, QSizePolicy::Policy::Maximum));
+					m_internalLayout->addWidget(m_header);
+					m_header->adjustSize();
+				}
 				adjustSize();
 			}
 			~BaseContainer()
 			{
-				if (uiLabel != nullptr)
-					delete (uiLabel);
 				QLayoutItem* wItem;
 				while ((wItem = m_internalLayout->takeAt(0)) != 0) {
 					m_internalLayout->removeWidget(wItem->widget());
 					delete(wItem);
 				}
 				delete(m_internalLayout);
+				while ((wItem = m_headerLayout->takeAt(0)) != 0) {
+					m_headerLayout->removeWidget(wItem->widget());
+					delete(wItem);
+				}
+				if (uiLabel != nullptr)
+					delete (uiLabel);
+				if (m_hideButton != nullptr)
+					delete (m_hideButton);
+				delete(m_headerLayout);
+				delete(m_header);
 				m_arrWidgets.clear();
 			}
 			std::weak_ptr<T> AddWidget(T * ptrWidget, uint32_t id)
@@ -49,6 +73,7 @@ namespace SmartCampus {	namespace Gui {
 				// Adding new widget if not found
 				if (found != m_arrWidgets.end()) {
 					found->second = std::shared_ptr<T>(ptrWidget);
+					adjustSize();
 					return std::weak_ptr<T>(found->second);
 				}
 				else {
@@ -99,7 +124,28 @@ namespace SmartCampus {	namespace Gui {
 			QLabel* uiLabel;
 			QWidget* m_parent;
 			QVBoxLayout* m_internalLayout;
+			QHBoxLayout* m_headerLayout;
+			QFrame* m_header;
+			QPushButton* m_hideButton;
 			QVector<QPair<uint32_t, std::shared_ptr<T>>> m_arrWidgets;
+			bool hidingState;
+		private slots:
+			void onHideButtonClicked(bool checked = false) {
+				if (!hidingState) {
+					// Hide all child widgets
+					for (auto child : m_arrWidgets)
+						child.second->hide();
+					m_hideButton->setText("+");
+				}
+				else {
+					// Show all child widgets
+					for (auto child : m_arrWidgets)
+						child.second->show();
+					m_hideButton->setText("-");
+				}
+				// Toggle state flag
+				hidingState = !hidingState;
+			}
 	};
 
 	class ElectricalSensor : public QWidget, public Database::DbElectricalSensor {

@@ -8,27 +8,33 @@ namespace SmartCampus {
 
 	Application::Application(const int width, const int height) noexcept :
 	ui(new Ui::MainWindow()),
-	m_guiBuildings(ui->selectedRoomsView, "")
+	m_guiBuildings(ui->selectedRoomsView, "", false)
 	{
 		ui->setupUi(this);
+		resize(QDesktopWidget().availableGeometry(this).size() * 0.9);
+		m_guiBuildings.setContentsMargins(QMargins(0,0,0,0));
 		m_ptrBuildingTreeModel = Gui::BuildingTreeModelPtr(new Gui::BuildingTreeModel());
 		ui->buildingTree->setModel(m_ptrBuildingTreeModel.get());
-		ui->selectedScrollArea->setWidget(&m_guiBuildings);
+		ui->scrollArea->setWidget(&m_guiBuildings);
 		ptrBuildingTreeRoomContextMenu = new QMenu(ui->buildingTree);
 		ptrBuildingTreeFloorContextMenu = new QMenu(ui->buildingTree);
-		ptrTransferSensorAction = new QAction(QString::fromLocal8Bit("Добавить аудиторию к наблюдению"), ptrBuildingTreeRoomContextMenu);
+		ptrBuildingTreeSensorContextMenu = new QMenu(ui->buildingTree);
+		ptrTransferRoomAction = new QAction(QString::fromLocal8Bit("Добавить аудиторию к наблюдению"), ptrBuildingTreeRoomContextMenu);
 		ptrTransferFloorAction = new QAction(QString::fromLocal8Bit("Добавить этаж к наблюдению"), ptrBuildingTreeFloorContextMenu);
+		ptrTransferSensorAction = new QAction(QString::fromLocal8Bit("Добавить датчик к наблюдению"), ptrBuildingTreeSensorContextMenu);
 		ui->buildingTree->setContextMenuPolicy(Qt::CustomContextMenu);
 		ui->buildingTree->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
-		ptrBuildingTreeRoomContextMenu->addAction(ptrTransferSensorAction);
+		ptrBuildingTreeRoomContextMenu->addAction(ptrTransferRoomAction);
 		ptrBuildingTreeFloorContextMenu->addAction(ptrTransferFloorAction);
+		ptrBuildingTreeSensorContextMenu->addAction(ptrTransferSensorAction);
 		this->setBaseSize(QSize(width, height));
 		connect(ui->startGenerationButton, &QAction::triggered, this, &Application::OnStartGeneratorClicked);
 		connect(ui->stopGenerationButton, &QAction::triggered, this, &Application::OnStopGeneratorClicked);
 		connect(ui->hideButton, &QPushButton::clicked, this, &Application::OnHideButtonClicked);
 		connect(ui->buildingTree, &QTreeView::customContextMenuRequested, this, &Application::OnCustomContextMenu);
-		connect(ptrTransferSensorAction, &QAction::triggered, this, &Application::OnTransferSensorClicked);
+		connect(ptrTransferRoomAction, &QAction::triggered, this, &Application::OnTransferRoomClicked);
 		connect(ptrTransferFloorAction, &QAction::triggered, this, &Application::OnTransferFloorClicked);
+		connect(ptrTransferSensorAction, &QAction::triggered, this, &Application::OnTransferSensorClicked);
 		m_width = width;
 		m_height = height;
 		countOfSensors = 0;
@@ -46,8 +52,10 @@ namespace SmartCampus {
 		m_timer.stop();
 		delete(ptrBuildingTreeRoomContextMenu);
 		delete(ptrBuildingTreeFloorContextMenu);
+		delete(ptrBuildingTreeSensorContextMenu);
 		delete(ptrTransferSensorAction);
 		delete(ptrTransferFloorAction);
+		delete(ptrTransferSensorAction);
 		/*while (auto wItem = ui->selectedRoomLayout->takeAt(0)) {
 			delete wItem;
 		}*/
@@ -74,17 +82,20 @@ namespace SmartCampus {
 		QModelIndex index = ui->buildingTree->indexAt(point);
 		if (index.isValid() && index.parent().parent().parent().isValid())
 		{ 
-			/*Sensor call context menu. Actually there is no handler*/
+			ptrBuildingTreeSensorContextMenu->exec(ui->buildingTree->viewport()->mapToGlobal(point));
 		}
-		else if (index.isValid() && index.parent().parent().isValid()) {
+		else if (index.isValid() && index.parent().parent().isValid()  && m_ptrBuildingTreeModel->rowCount(index) > 0) {
 			ptrBuildingTreeRoomContextMenu->exec(ui->buildingTree->viewport()->mapToGlobal(point));
 		}
-		else if (index.isValid() && index.parent().isValid()) {
+		else if (index.isValid() && index.parent().isValid() && m_ptrBuildingTreeModel->rowCount(index) > 0) {
 			ptrBuildingTreeFloorContextMenu->exec(ui->buildingTree->viewport()->mapToGlobal(point));
 		}
 	}
 
-	void Application::OnTransferSensorClicked(bool checked)
+	// TODO при первом добавлении здания не подстраивается размер ScrollArea
+	// TODO2 при запуске генератора происходит крэш памяти!
+
+	void Application::OnTransferRoomClicked(bool checked)
 	{
 		QModelIndexList indexes = ui->buildingTree->selectionModel()->selectedIndexes();
 		if (indexes.size() > 0) {
@@ -116,6 +127,7 @@ namespace SmartCampus {
 				}
 			}
 		}
+		ui->scrollArea->setMinimumWidth(m_guiBuildings.width());
 	}
 
 	void Application::OnTransferFloorClicked(bool checked)
@@ -124,7 +136,6 @@ namespace SmartCampus {
 		if (indexes.size() > 0) {
 			QModelIndex selectedIndex = indexes.at(0);
 			// Prepare all data to widget's processing
-			// TODO добавить в список отслеживания все кабинеты из указанного этажа (определять номер аудитории по первой цифре)
 			uint32_t buildingId = m_ptrBuildingTreeModel->data(selectedIndex.parent(), Qt::DisplayRole, 1).toUInt();
 			QString buildingName = m_ptrBuildingTreeModel->data(selectedIndex.parent(), Qt::DisplayRole, 0).toString();
 			// Selected index - current floor
@@ -158,6 +169,43 @@ namespace SmartCampus {
 				}
 			}
 		}
+		ui->scrollArea->setMinimumWidth(m_guiBuildings.width());
+	}
+
+	void Application::OnTransferSensorClicked(bool checked)
+	{
+		QModelIndexList indexes = ui->buildingTree->selectionModel()->selectedIndexes();
+		if (indexes.size() > 0) {
+			QModelIndex selectedIndex = indexes.at(0);
+			// Prepare all data to widget's processing
+			uint32_t roomId = m_ptrBuildingTreeModel->data(selectedIndex.parent(), Qt::DisplayRole, 1).toUInt();
+			uint32_t buildingId = m_ptrBuildingTreeModel->data(selectedIndex.parent().parent().parent(), Qt::DisplayRole, 1).toUInt();
+			QString buildingName = m_ptrBuildingTreeModel->data(selectedIndex.parent().parent().parent(), Qt::DisplayRole, 0).toString();
+			uint32_t roomNumber = m_ptrBuildingTreeModel->data(selectedIndex.parent(), Qt::DisplayRole, 0).toUInt();
+			uint32_t sensorId = m_ptrBuildingTreeModel->data(selectedIndex, Qt::DisplayRole, 1).toUInt();
+			// Try to find nested building
+			auto foundBuilding = m_guiBuildings.findWidget(buildingId);
+			if (foundBuilding.lock() == nullptr) {
+				foundBuilding = m_guiBuildings.AddWidget(new Gui::GuiBuildings(&m_guiBuildings, QString::fromLocal8Bit("%1").arg(buildingName)), buildingId);
+			}
+			// Try to find nested room
+			auto foundRoom = foundBuilding.lock()->findWidget(roomId);
+			if (foundRoom.lock() == nullptr) {
+				foundRoom = foundBuilding.lock()->AddWidget(new Gui::GuiRooms(foundBuilding.lock().get(), QString::fromLocal8Bit("Аудитория №%1").arg(roomNumber)), roomId);
+			}
+			auto sensor = std::find_if(m_electricalSensors.begin(), m_electricalSensors.end(), [sensorId](Database::DbElectricalSensorPtr& seek) {
+					return seek->GetId() == sensorId;
+				});
+			if (sensor != m_electricalSensors.end()) {
+				// Try to find nested sensor
+				auto foundSensor = foundRoom.lock()->findWidget(sensorId);
+				if (foundSensor.lock() == nullptr) {
+					foundSensor = foundRoom.lock()->AddWidget(new Gui::ElectricalSensor(foundRoom.lock().get(), *sensor), (*sensor)->GetId());
+					countOfSensors++;
+				}
+			}
+		}
+		ui->scrollArea->setMinimumWidth(m_guiBuildings.width());
 	}
 
 	void Application::LoadData()
@@ -227,6 +275,13 @@ namespace SmartCampus {
 			m_guiBuildings.DeleteWidget(restInPeaceBuildingWidget[it]);
 		}
 		ui->sensCountLabel->setText(QString::fromLocal8Bit("Отслеживаемые датчики: %1").arg(countOfSensors));
+		ui->sensCountLabel->adjustSize();
+		/*
+		if (m_guiBuildings.GetWidgetsCount() != 0)
+			ui->scrollArea->setFixedWidth(m_guiBuildings.width());
+		else
+			ui->scrollArea->setFixedWidth(ui->sensCountLabel->width());
+		*/
 	}
 
 	void Application::OnStartGeneratorClicked()
@@ -254,7 +309,7 @@ namespace SmartCampus {
 
 	void  Application::showEvent(QShowEvent* event)
 	{
-		m_timer.start(TIMER_TIMEOUT_MS);
+		m_timer.start(1);
 		connect(&m_timer, &QTimer::timeout, this, &Application::Timeout);
 	}
 
@@ -293,7 +348,7 @@ namespace SmartCampus {
 							if (sensor->GetRoomId() == room->GetId()) {
 								// Adding sensor to this room
 								m_ptrBuildingTreeModel->addItem({
-									tr("[%1]").arg(sensor->GetName()) }
+									tr("[%1]").arg(sensor->GetName()), sensor->GetId() }
 								, roomIndex);
 							}
 						} // for (auto& sensor : m_electricalSensors)

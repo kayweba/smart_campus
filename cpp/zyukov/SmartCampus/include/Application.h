@@ -7,7 +7,7 @@
 #include <ElectricalSensor.h>
 
 namespace  SmartCampus {
-#define TIMER_TIMEOUT_MS 250
+#define TIMER_TIMEOUT_MS 50
 
 class Application : public QMainWindow {
 	public:
@@ -25,8 +25,9 @@ class Application : public QMainWindow {
 		void OnCustomContextMenu(const QPoint& point);
 
 	private slots:
-		void OnTransferSensorClicked(bool checked = false);
+		void OnTransferRoomClicked(bool checked = false);
 		void OnTransferFloorClicked(bool checked = false);
+		void OnTransferSensorClicked(bool checked = false);
 	protected:
 		void showEvent(QShowEvent* event) override;
 		void closeEvent(QCloseEvent* event) override;
@@ -54,8 +55,10 @@ class Application : public QMainWindow {
 		Gui::BaseContainer<Gui::GuiBuildings> m_guiBuildings;
 		QMenu* ptrBuildingTreeRoomContextMenu;
 		QMenu* ptrBuildingTreeFloorContextMenu;
-		QAction* ptrTransferSensorAction;
+		QMenu* ptrBuildingTreeSensorContextMenu;
+		QAction* ptrTransferRoomAction;
 		QAction* ptrTransferFloorAction;
+		QAction* ptrTransferSensorAction;
 		Gui::BuildingTreeModelPtr m_ptrBuildingTreeModel;
 };
 

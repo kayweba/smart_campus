@@ -13,7 +13,7 @@ namespace SmartCampus {
 			~DBManager();
 
 			QVector<Database::DbElectricalSensorPtr> GetElectricalSensors() const;
-			void UpdateElectricalSensor(const Database::DbElectricalSensor & sensor);
+			void UpdateElectricalSensor(const Database::DbElectricalSensorPtr sensor);
 			QVector<Database::DbRoomPtr> GetRooms() const;
 			QVector<Database::DbElectricalSensorTypePtr> GetElectricalSensorTypes() const;
 			QVector<Database::DbBuildingPtr> GetBuildings() const;

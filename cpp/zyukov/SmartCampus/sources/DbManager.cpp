@@ -77,7 +77,7 @@ namespace SmartCampus {
 		return result;
 	}
 
-	void DBManager::UpdateElectricalSensor(const Database::DbElectricalSensor& sensor)
+	void DBManager::UpdateElectricalSensor(const Database::DbElectricalSensorPtr sensor)
 	{
 		if (!IsOpened())
 		{
@@ -103,12 +103,12 @@ namespace SmartCampus {
 			return;
 		}
 		//Подставляем в запрос своим параметры
-		query.bindValue(":id", sensor.GetId());
-		query.bindValue(":name", sensor.GetName());
-		query.bindValue(":type_id", sensor.GetType()->GetId());
-		query.bindValue(":state", sensor.GetState());
-		query.bindValue(":value", sensor.GetValue());
-		query.bindValue(":room_id", sensor.GetRoomId());
+		query.bindValue(":id", sensor->GetId());
+		query.bindValue(":name", sensor->GetName());
+		query.bindValue(":type_id", sensor->GetType()->GetId());
+		query.bindValue(":state", sensor->GetState());
+		query.bindValue(":value", sensor->GetValue());
+		query.bindValue(":room_id", sensor->GetRoomId());
 
 		{
 			boost::mutex::scoped_lock lock(m_selfProtectionMutex);
