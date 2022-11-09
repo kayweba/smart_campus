@@ -13,7 +13,7 @@ class Application : public QMainWindow {
 	public:
 		explicit Application(const int width, const int height) noexcept;
 		~Application();
-		void UpdateStatus(const QString & status);
+		void UpdateStatus(const QString status, MessageType type);
 		void ConnectToDb(const QString & dbType);
 		void OnGeneratorEmitsErrorSignal();
 		void LoadData();

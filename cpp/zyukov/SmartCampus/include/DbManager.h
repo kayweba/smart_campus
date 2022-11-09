@@ -7,9 +7,9 @@
 #include <DbData.h>
 
 namespace SmartCampus {
-	class DBManager : QSqlDatabase {
+	class DBManager {
 		public:
-			DBManager(const QString& dbType, std::shared_ptr<Application> ptrApplication);
+			DBManager(const QString& dbType, boost::signals2::signal<void(QString, MessageType)>::slot_type m_messageSignalHandler);
 			~DBManager();
 
 			QVector<Database::DbElectricalSensorPtr> GetElectricalSensors() const;
@@ -21,9 +21,10 @@ namespace SmartCampus {
 			QString GetDbType() const;
 		protected:
 		private:
+			static int dbCount;
+			boost::signals2::signal<void(QString, MessageType)> m_messageSignal;
 			bool dbState;
+			QSqlDatabase m_database;
 			QString m_dbType;
-			ApplicationPtr m_ptrApplication;
-			mutable boost::mutex m_selfProtectionMutex;
 	};
 }

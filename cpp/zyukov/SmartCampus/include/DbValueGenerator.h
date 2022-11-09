@@ -15,7 +15,7 @@ namespace SmartCampus { namespace Database {
 
 	class ValueGenerator {
 		public:
-			explicit ValueGenerator(DbManagerPtr ptrDatabaseManager, std::string jsonFileName = "") noexcept;
+			explicit ValueGenerator(std::string jsonFileName = "") noexcept;
 			~ValueGenerator();
 			void Start();
 			void Stop();
@@ -26,8 +26,10 @@ namespace SmartCampus { namespace Database {
 			void UpdateThreadFunction();
 			StateType m_internalState = SUCCESS;
 		private:
+			void m_onDbMessage(QString dbMessage, MessageType type);
 			std::string m_lastError;
 			std::string m_jsonFilePath;
+			QSqlDatabase m_database;
 			boost::thread m_updatingThread;
 			DbManagerPtr m_ptrDatabaseManager;
 			DbUpdateValue m_updateInfo;

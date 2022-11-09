@@ -1,12 +1,12 @@
 #include <DbValueGenerator.h>
-#include <DBManager.h>
+#include <DbManager.h>
 
 namespace SmartCampus {
 	namespace Database {
 		namespace pt = boost::property_tree;
-		ValueGenerator::ValueGenerator(DbManagerPtr ptrDatabaseManager, std::string jsonFileName) noexcept
+		ValueGenerator::ValueGenerator(std::string jsonFileName) noexcept
 		{
-			m_ptrDatabaseManager = ptrDatabaseManager;
+			m_ptrDatabaseManager = DbManagerPtr(new DBManager("QSQLITE", boost::bind(&ValueGenerator::m_onDbMessage, this, boost::placeholders::_1, boost::placeholders::_2)));
 			m_updateInfo = DbUpdateValue();
 			boost::filesystem::path jsonConfig = boost::dll::program_location().parent_path() / (jsonFileName);
 			m_jsonFilePath = jsonConfig.string();
@@ -56,6 +56,14 @@ namespace SmartCampus {
 		void ValueGenerator::ConnectErrorSignal(boost::signals2::signal<void()>::slot_type _errorSignalHandler)
 		{
 			errorSignal.connect(_errorSignalHandler);
+		}
+
+		void ValueGenerator::m_onDbMessage(QString dbMessage, MessageType type)
+		{
+			if (type == MessageType::ErrorMessage) {
+				m_lastError = dbMessage.toStdString();
+				if (!errorSignal.empty()) errorSignal();
+			}
 		}
 
 		void ValueGenerator::UpdateThreadFunction()

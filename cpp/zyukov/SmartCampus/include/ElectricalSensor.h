@@ -74,12 +74,14 @@ namespace SmartCampus {	namespace Gui {
 				if (found != m_arrWidgets.end()) {
 					found->second = std::shared_ptr<T>(ptrWidget);
 					adjustSize();
+					if (m_parent != nullptr) m_parent->adjustSize();
 					return std::weak_ptr<T>(found->second);
 				}
 				else {
 					m_arrWidgets.push_back(qMakePair(id, std::shared_ptr<T>(ptrWidget)));
 					m_internalLayout->addWidget(m_arrWidgets.last().second.get());
 					adjustSize();
+					if (m_parent != nullptr) m_parent->adjustSize();
 					return std::weak_ptr<T>(m_arrWidgets.last().second);
 				}
 				return std::weak_ptr<T>();
@@ -95,6 +97,7 @@ namespace SmartCampus {	namespace Gui {
 					m_arrWidgets.erase(found);
 				}
 				adjustSize();
+				if (m_parent != nullptr) m_parent->adjustSize();
 			}
 			uint32_t getId(int index) {
 				if (index >= 0 && index < m_arrWidgets.size()) {

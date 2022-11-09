@@ -40,7 +40,7 @@ namespace SmartCampus {
 		countOfSensors = 0;
 		ui->statusbar->showMessage(QString::fromLocal8Bit("Программа запущена"));
 		ConnectToDb("QSQLITE");
-		generator = Database::ValueGeneratorPtr(new Database::ValueGenerator(database, "settings.json"));
+		generator = Database::ValueGeneratorPtr(new Database::ValueGenerator("settings.json"));
 		generator->ConnectErrorSignal(boost::bind(&Application::OnGeneratorEmitsErrorSignal, this));
 		treeIsVisible = true;
 		LoadData();
@@ -62,19 +62,19 @@ namespace SmartCampus {
 		delete(ui);
 	}
 
-	void Application::UpdateStatus(const QString& status)
+	void Application::UpdateStatus(const QString status, MessageType type)
 	{
 		ui->statusbar->showMessage(status);
 	}
 
 	void Application::ConnectToDb(const QString& dbType)
 	{
-		database = DbManagerPtr(new DBManager(dbType, ApplicationPtr(this)));
+		database = DbManagerPtr(new DBManager(dbType, boost::bind(&Application::UpdateStatus, this, boost::placeholders::_1, boost::placeholders::_2)));
 	}
 
 	void Application::OnGeneratorEmitsErrorSignal()
 	{
-		UpdateStatus(QString::fromLocal8Bit(generator->GetLastError().c_str()));
+		UpdateStatus(QString::fromLocal8Bit(generator->GetLastError().c_str()), MessageType::ErrorMessage);
 	}
 
 	void Application::OnCustomContextMenu(const QPoint& point)
@@ -91,9 +91,6 @@ namespace SmartCampus {
 			ptrBuildingTreeFloorContextMenu->exec(ui->buildingTree->viewport()->mapToGlobal(point));
 		}
 	}
-
-	// TODO при первом добавлении здания не подстраивается размер ScrollArea
-	// TODO2 при запуске генератора происходит крэш памяти!
 
 	void Application::OnTransferRoomClicked(bool checked)
 	{
@@ -126,8 +123,8 @@ namespace SmartCampus {
 					}
 				}
 			}
+			ui->scrollArea->setMinimumWidth(foundBuilding.lock()->width() + 30);
 		}
-		ui->scrollArea->setMinimumWidth(m_guiBuildings.width());
 	}
 
 	void Application::OnTransferFloorClicked(bool checked)
@@ -168,8 +165,8 @@ namespace SmartCampus {
 					}
 				}
 			}
+			ui->scrollArea->setMinimumWidth(foundBuilding.lock()->width() + 30);
 		}
-		ui->scrollArea->setMinimumWidth(m_guiBuildings.width());
 	}
 
 	void Application::OnTransferSensorClicked(bool checked)
@@ -204,8 +201,8 @@ namespace SmartCampus {
 					countOfSensors++;
 				}
 			}
+			ui->scrollArea->setMinimumWidth(foundBuilding.lock()->width() + 30);
 		}
-		ui->scrollArea->setMinimumWidth(m_guiBuildings.width());
 	}
 
 	void Application::LoadData()
@@ -226,6 +223,7 @@ namespace SmartCampus {
 			m_ptrBuildingTreeModel->redrawData();
 			BuildTree();
 		}
+
 		// Iterate buildings
 		QVector<uint32_t> restInPeaceBuildingWidget = {};
 		for (int i = 0; i < m_guiBuildings.GetWidgetsCount(); i++) {
@@ -274,14 +272,9 @@ namespace SmartCampus {
 		for (int it = 0; it < restInPeaceBuildingWidget.size(); it++) {
 			m_guiBuildings.DeleteWidget(restInPeaceBuildingWidget[it]);
 		}
+
 		ui->sensCountLabel->setText(QString::fromLocal8Bit("Отслеживаемые датчики: %1").arg(countOfSensors));
 		ui->sensCountLabel->adjustSize();
-		/*
-		if (m_guiBuildings.GetWidgetsCount() != 0)
-			ui->scrollArea->setFixedWidth(m_guiBuildings.width());
-		else
-			ui->scrollArea->setFixedWidth(ui->sensCountLabel->width());
-		*/
 	}
 
 	void Application::OnStartGeneratorClicked()

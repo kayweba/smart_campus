@@ -25,6 +25,10 @@
 
 // Forward declarations
 namespace SmartCampus {
+	enum MessageType {
+		ErrorMessage = 0,
+		LogMessage = 1
+	};
 	class Application;
 	class DBManager;
 	namespace Database {
