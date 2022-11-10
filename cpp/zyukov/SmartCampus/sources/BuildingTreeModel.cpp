@@ -107,7 +107,7 @@ namespace SmartCampus { namespace Gui {
 		return rootItem->columnCount();
 	}
 
-	QModelIndex BuildingTreeModel::addItem(QVariantList data, QModelIndex& parent) const
+	QModelIndex BuildingTreeModel::addItem(QVariantList data, const QModelIndex& parent) const
 	{
 		BuildingItem* lastAddedItem;
 		if (parent.isValid()) {

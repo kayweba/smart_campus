@@ -16,7 +16,7 @@ namespace SmartCampus { namespace Gui {
 			QModelIndex parent(const QModelIndex& index) const override;
 			int rowCount(const QModelIndex& parent = QModelIndex()) const override;
 			int columnCount(const QModelIndex& parent = QModelIndex()) const override;
-			QModelIndex addItem(QVariantList data, QModelIndex& parent = QModelIndex()) const;
+			QModelIndex addItem(QVariantList data, const QModelIndex& parent = QModelIndex()) const;
 			void redrawData();
 		protected:
 	

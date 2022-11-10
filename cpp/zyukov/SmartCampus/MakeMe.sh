@@ -30,12 +30,12 @@ fi
 ### Create bulding directory again ###
 mkdir ./build
 
-echo "+++ cmake -S . -B ./build ."
-Cmake_RC=1
-cmake -S . -B ./build -DCMAKE_BUILD_TYPE=$BUILD_TYPE .
-echo "+++ cmake --build ./build --config $BUILD_TYPE"
-cmake --build . --config $BUILD_TYPE
-cp ${SRC_PATH}/db/korpus_1.db ${SRC_PATH}/bin
-cp ${SRC_PATH}/db/settings.json ${SRC_PATH}/bin
+echo "+++ cmake -DCMAKE_BINARY_DIR=./build -DCMAKE_BUILD_TYPE=$BUILD_TYPE ."
+cmake -DCMAKE_BINARY_DIR=./build -DCMAKE_BUILD_TYPE=$BUILD_TYPE .
+echo "+++ cmake --build . --config $BUILD_TYPE";
+cmake --build . --config $BUILD_TYPE;
+cp ${SRC_PATH}/db/korpus_1.db ${SRC_PATH}/bin;
+cp ${SRC_PATH}/db/settings.json ${SRC_PATH}/bin;
+
 
 

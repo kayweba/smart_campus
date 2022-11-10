@@ -1,4 +1,4 @@
-#include <DBManager.h>
+#include <DbManager.h>
 #include <Application.h>
 
 namespace SmartCampus {

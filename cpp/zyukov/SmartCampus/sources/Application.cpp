@@ -1,5 +1,5 @@
 #include <Application.h>
-#include <DBManager.h>
+#include <DbManager.h>
 #include <DbValueGenerator.h>
 #include <BuildingTreeModel.h>
 #include <BuildingTreeItem.h>
@@ -19,9 +19,9 @@ namespace SmartCampus {
 		ptrBuildingTreeRoomContextMenu = new QMenu(ui->buildingTree);
 		ptrBuildingTreeFloorContextMenu = new QMenu(ui->buildingTree);
 		ptrBuildingTreeSensorContextMenu = new QMenu(ui->buildingTree);
-		ptrTransferRoomAction = new QAction(QString::fromLocal8Bit("Добавить аудиторию к наблюдению"), ptrBuildingTreeRoomContextMenu);
-		ptrTransferFloorAction = new QAction(QString::fromLocal8Bit("Добавить этаж к наблюдению"), ptrBuildingTreeFloorContextMenu);
-		ptrTransferSensorAction = new QAction(QString::fromLocal8Bit("Добавить датчик к наблюдению"), ptrBuildingTreeSensorContextMenu);
+		ptrTransferRoomAction = new QAction(QString::fromLocal8Bit("Р”РѕР±Р°РІРёС‚СЊ Р°СѓРґРёС‚РѕСЂРёСЋ Рє РЅР°Р±Р»СЋРґРµРЅРёСЋ"), ptrBuildingTreeRoomContextMenu);
+		ptrTransferFloorAction = new QAction(QString::fromLocal8Bit("Р”РѕР±Р°РІРёС‚СЊ СЌС‚Р°Р¶ Рє РЅР°Р±Р»СЋРґРµРЅРёСЋ"), ptrBuildingTreeFloorContextMenu);
+		ptrTransferSensorAction = new QAction(QString::fromLocal8Bit("Р”РѕР±Р°РІРёС‚СЊ РґР°С‚С‡РёРє Рє РЅР°Р±Р»СЋРґРµРЅРёСЋ"), ptrBuildingTreeSensorContextMenu);
 		ui->buildingTree->setContextMenuPolicy(Qt::CustomContextMenu);
 		ui->buildingTree->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
 		ptrBuildingTreeRoomContextMenu->addAction(ptrTransferRoomAction);
@@ -38,7 +38,7 @@ namespace SmartCampus {
 		m_width = width;
 		m_height = height;
 		countOfSensors = 0;
-		ui->statusbar->showMessage(QString::fromLocal8Bit("Программа запущена"));
+		ui->statusbar->showMessage(QString::fromLocal8Bit("РџСЂРѕРіСЂР°РјРјР° Р·Р°РїСѓС‰РµРЅР°"));
 		ConnectToDb("QSQLITE");
 		generator = Database::ValueGeneratorPtr(new Database::ValueGenerator("settings.json"));
 		generator->ConnectErrorSignal(boost::bind(&Application::OnGeneratorEmitsErrorSignal, this));
@@ -111,7 +111,7 @@ namespace SmartCampus {
 			// Try to find nested room
 			auto foundRoom = foundBuilding.lock()->findWidget(roomId);
 			if (foundRoom.lock() == nullptr) {
-				foundRoom = foundBuilding.lock()->AddWidget(new Gui::GuiRooms(foundBuilding.lock().get(), QString::fromLocal8Bit("Аудитория №%1").arg(roomNumber)), roomId);
+				foundRoom = foundBuilding.lock()->AddWidget(new Gui::GuiRooms(foundBuilding.lock().get(), QString::fromLocal8Bit("РђСѓРґРёС‚РѕСЂРёСЏ в„–%1").arg(roomNumber)), roomId);
 			}
 			for (auto & sensor : m_electricalSensors) {
 				if (sensor->GetRoomId() == roomId) {
@@ -150,7 +150,7 @@ namespace SmartCampus {
 				uint32_t roomNumber = selectedIndex.child(i, 0).data(Qt::DisplayRole).toUInt();
 				auto foundRoom = foundBuildingPtr->findWidget(roomId);
 				if (foundRoom.lock() == nullptr) {
-					foundRoom = foundBuildingPtr->AddWidget(new Gui::GuiRooms(foundBuildingPtr.get(), QString::fromLocal8Bit("Аудитория №%1").arg(roomNumber)), roomId);
+					foundRoom = foundBuildingPtr->AddWidget(new Gui::GuiRooms(foundBuildingPtr.get(), QString::fromLocal8Bit("РђСѓРґРёС‚РѕСЂРёСЏ в„–%1").arg(roomNumber)), roomId);
 				}
 				auto foundRoomPtr = foundRoom.lock();
 				for (auto& sensor : m_electricalSensors) {
@@ -188,7 +188,7 @@ namespace SmartCampus {
 			// Try to find nested room
 			auto foundRoom = foundBuilding.lock()->findWidget(roomId);
 			if (foundRoom.lock() == nullptr) {
-				foundRoom = foundBuilding.lock()->AddWidget(new Gui::GuiRooms(foundBuilding.lock().get(), QString::fromLocal8Bit("Аудитория №%1").arg(roomNumber)), roomId);
+				foundRoom = foundBuilding.lock()->AddWidget(new Gui::GuiRooms(foundBuilding.lock().get(), QString::fromLocal8Bit("РђСѓРґРёС‚РѕСЂРёСЏ в„–%1").arg(roomNumber)), roomId);
 			}
 			auto sensor = std::find_if(m_electricalSensors.begin(), m_electricalSensors.end(), [sensorId](Database::DbElectricalSensorPtr& seek) {
 					return seek->GetId() == sensorId;
@@ -273,7 +273,7 @@ namespace SmartCampus {
 			m_guiBuildings.DeleteWidget(restInPeaceBuildingWidget[it]);
 		}
 
-		ui->sensCountLabel->setText(QString::fromLocal8Bit("Отслеживаемые датчики: %1").arg(countOfSensors));
+		ui->sensCountLabel->setText(QString::fromLocal8Bit("РћС‚СЃР»РµР¶РёРІР°РµРјС‹Рµ РґР°С‚С‡РёРєРё: %1").arg(countOfSensors));
 		ui->sensCountLabel->adjustSize();
 	}
 
@@ -329,7 +329,7 @@ namespace SmartCampus {
 		for (auto& building : m_buildings) {
 			QModelIndex index = m_ptrBuildingTreeModel->addItem({ building->GetDescription(), building->GetId(), building->GetBuildingNumber(), building->GetCountOfFloors() });
 			for (size_t floor = 0; floor < building->GetCountOfFloors(); floor++) {
-				QModelIndex floorIndex = m_ptrBuildingTreeModel->addItem({ QString::fromLocal8Bit("%1 этаж").arg(floor + 1), building->GetId(), (floor + 1) }, index);
+				QModelIndex floorIndex = m_ptrBuildingTreeModel->addItem({ QString::fromLocal8Bit("%1 СЌС‚Р°Р¶").arg(floor + 1), QVariant::fromValue(building->GetId()), QVariant::fromValue(floor + 1)}, index);
 				for (auto room : m_rooms) {
 					int firstDigit;
 					// Calculate first digit in room number and check if its matches with the floor number
