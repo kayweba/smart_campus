@@ -1,0 +1,36 @@
+.errorStatus {
+    animation: errorStatusAnimation .2 forwards;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #ff0000;
+    margin: 0 4px 0 0;
+}
+
+.normalStatus {
+    animation: normalStatusAnimation .2s forwards;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #66BB6A;
+    margin: 0 4px 0 0;
+}
+
+@keyframes errorStatusAnimation {
+    0% {
+        background-color: transparent;
+    }
+
+    100% {
+        background-color: #ff0000;
+    }
+}
+
+@keyframes normalStatusAnimation {
+    0% {
+        background-color: transparent;
+    }
+    100% {
+        background-color: #66BB6A;
+    }
+}

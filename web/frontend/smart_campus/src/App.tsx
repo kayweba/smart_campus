@@ -3,11 +3,11 @@ import React from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 
 import './App.css';
-import { RoomsComponent } from './components/Rooms/RoomsComponent';
-import { BuildingComponent } from './components/Building/BuildingComponent';
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import CssBaseline from '@mui/material/CssBaseline';
 import { Floors } from './components/Floors/Floors';
+import { BuldingsSidebar } from './components/BuildingsSidebar/BuildingsSidebar';
+import { SensorsSidebar } from './components/SensorsSidebar/SensorsSidebar';
+import { Grid } from '@mui/material';
 
 const darkTheme = createTheme({
   palette: {
@@ -16,34 +16,38 @@ const darkTheme = createTheme({
 });
 
 type AppState = {
-  id_building: number
+  selectedBuildingId: number
 }
-
 class App extends React.Component<{}, AppState> {
 
   state = {
-    id_building: 0
+    selectedBuildingId: 0
   }
+
 
   public render(): React.ReactNode {
 
-    const setBuildingId = (buildingId: number): void => {
+    const setBuildingId = (id: number) => {
       this.setState({
-        id_building: buildingId
+        selectedBuildingId: id
       })
     }
 
-
     return (
-      <BrowserRouter>
-        <ThemeProvider theme={darkTheme}>
-          <CssBaseline />
-          <Routes>
-            <Route path='/' element={<BuildingComponent setBuildingId={setBuildingId} />} />
-            <Route path='/building:id' element={<Floors buildingId={this.state.id_building} />} />
-          </Routes>
-        </ThemeProvider>
-      </BrowserRouter>
+      <ThemeProvider theme={darkTheme}>
+        <CssBaseline />
+        <Grid container justifyContent='space-between' width='98%' margin='auto' height='100vh' alignItems='center'>
+          <Grid width='8%' item>
+            <BuldingsSidebar setBuildingId={setBuildingId} />
+          </Grid>
+          <Grid item width='76%' maxHeight='90vh' overflow='auto' paddingRight='15px'>
+            <Floors buildingId={this.state.selectedBuildingId} />
+          </Grid>
+          <Grid item width='12%' maxHeight='90vh' overflow='auto' paddingRight='15px'>
+            <SensorsSidebar buildingId={this.state.selectedBuildingId}/>
+          </Grid>
+        </Grid>
+      </ThemeProvider>
     );
   }
 }

@@ -3,7 +3,7 @@ import { Rooms, RoomsElectrical, RoomsElectricalSet, RoomsSet } from "../../mode
 
 export class ElectricalService implements ElectricalServiceInterface {
 
-    private requsetInit = {
+    private requestInit = {
         method: 'GET',
         headers: { "Content-Type": "application/json" },
     }
@@ -15,7 +15,7 @@ export class ElectricalService implements ElectricalServiceInterface {
 
         let result = [] as RoomsSet
         try {
-            const response = await fetch(this.baseURL + `getRoomsData?id_room=${id}`, this.requsetInit)
+            const response = await fetch(this.baseURL + `getRoomsData?id_room=${id}`, this.requestInit)
             return response.json()
                 .then(data => {
                     for (let i in data) {
@@ -38,7 +38,7 @@ export class ElectricalService implements ElectricalServiceInterface {
         let result = [] as RoomsElectricalSet
 
         try {
-            const response = await fetch(this.baseURL + `getRoomsElectricalSensorsData?id=${id}`, this.requsetInit)
+            const response = await fetch(this.baseURL + `getRoomsElectricalSensorsData?id=${id}`, this.requestInit)
             return response.json()
                 .then(data => {
                     for (let i in data) {

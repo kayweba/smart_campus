@@ -1,6 +1,8 @@
 .card_style {
-    max-width: '350px';
-    max-height: '250px'
+    display: flex;
+    flex-direction: column;
+    max-width: 350px;
+    height: 150px;
 }
 
 .status_style {

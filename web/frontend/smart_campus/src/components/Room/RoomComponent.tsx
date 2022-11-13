@@ -1,73 +1,37 @@
 import React from 'react'
-import { Box, Button, Card, CardContent, Divider, Typography } from '@mui/material'
+import { Box, Button, Card, CardContent, Divider, Tooltip, Typography } from '@mui/material'
 
 import { ModalWindow } from '../ModalWindow/ModalWindow'
 import { ElectricalService } from '../../services/ElectricalService/ElectricalService'
 import { RoomsElectrical } from '../../models/SmartKampusModel'
-import { StatusColorComponent } from '../StatusColor/StatusColorComponent'
 
 import styles from './Room.module.css'
+import { StatusColorComponent } from '../StatusColor/StatusColorComponent'
 
 type RoomComponentProps = {
     name: string,
     electricalSensorsCount: number,
     id: number,
+    roomNumber: number,
     setErrorFlag: (flag: boolean) => void,
-    updateErrorsNumber: () => void
 }
 
 type RoomComponentState = {
     modalOpen: boolean,
     modalData: Array<RoomsElectrical>,
-    status: string
+    statuses: Array<string>
 }
 
 export class RoomComponent extends React.Component<RoomComponentProps, RoomComponentState> {
-    // Typescript может определить тип конкеста таким образом
-
-    state = {
-        modalOpen: false,
-        modalData: [],
-        status: ''
-    }
-
-    componentDidMount() {
-        this.updateData()
-    }
-
-    updateData = () => setInterval(async () => {
-        const data: Array<RoomsElectrical> = await new ElectricalService().getRoomsElectricalSensorsData(this.props.id)
-        let status = 'SUCCESS'
-
-        console.log(data);
-        
-
-        data.forEach(item => {
-            if ((item.value < 180.5) || (item.value > 229.6)) {
-                status = 'WARNING'
-            }
-        }
-        )
-        if (status === 'WARNING') {
-            this.props.updateErrorsNumber()
-        } 
-
-        this.setState({
-            modalData: data,
-            status: status
-        })
-
-    }, 1500)
 
     public render(): React.ReactNode {
-        const { name, electricalSensorsCount } = this.props
+        const { name, roomNumber, electricalSensorsCount } = this.props
 
         const handleClick = async () => {
             this.setState({
                 modalOpen: true,
             })
         }
-
         const handleClose = () => {
             this.setState({
                 modalOpen: false
@@ -77,19 +41,19 @@ export class RoomComponent extends React.Component<RoomComponentProps, RoomCompo
         return (
             <>
                 <Card className={styles.card_style}>
-                    <CardContent>
-                        <Typography variant='h6' component='div'>
-                            {name}
-                        </Typography>
+                    <CardContent sx={{ padding: '12px' }}>
+                        <Tooltip title='Номер комнаты' placement='top' arrow>
+                            <Typography variant='h6' component='div'>
+                                {roomNumber}
+                            </Typography>
+                        </Tooltip>
                         <Divider />
-                        <Typography sx={{ marginTop: '16px' }} component='div'>
-                            Количество датчиков в комнате: {electricalSensorsCount}
+                        <Typography sx={{ marginTop: '8px' }} component='div'>
+                            Датчиков: {electricalSensorsCount}
                         </Typography>
-                        <div style={{ marginTop: '6px' }}>
-                            Статус: <span><StatusColorComponent type={this.state.status} style={{ position: 'absolute', marginTop: '7px', marginLeft: '10px' }} /></span>
-                        </div>
+                            <StatusColorComponent statuses={this.state.statuses}></StatusColorComponent>
                         <Box>
-                            <Button size='small' variant='contained' sx={{ marginTop: '24px' }} onClick={() => handleClick()}>Подробнее</Button>
+                            <Button size='small' variant='contained' sx={{ marginTop: '12px', fontSize: '11px' }} onClick={() => handleClick()}>Подробнее</Button>
                         </Box>
                     </CardContent>
                 </Card>
@@ -99,4 +63,40 @@ export class RoomComponent extends React.Component<RoomComponentProps, RoomCompo
             </>
         )
     }
+
+    state = {
+        modalOpen: false,
+        modalData: [],
+        statuses: [] as Array<string>
+    }
+
+    componentDidMount() {
+        this.updateData()
+    }
+
+    componentWillUnmount() {
+        clearInterval(this.updateData())
+    }
+
+    updateData = () => setInterval(async () => {
+        const data: Array<RoomsElectrical> = await new ElectricalService().getRoomsElectricalSensorsData(this.props.id)
+        const statuses: Array<string> = []
+
+        data.forEach(item => {
+            if ((item.value < 200.5) || (item.value > 229.6)) {
+                statuses.push('WARNING')
+            } else {
+                statuses.push('SUCCESS')
+            }
+        }
+        )
+
+        this.setState({
+            ...this.state,
+            modalData: data,
+            statuses: statuses
+        })
+
+    }, 1500)
+
 }

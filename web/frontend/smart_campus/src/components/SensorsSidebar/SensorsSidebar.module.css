@@ -1,0 +1,46 @@
+.power {
+    opacity: 0;
+    color: #0652FF;;
+    animation: animation .4s forwards;
+}
+
+.powerOutlined {
+    opacity: 0;
+    animation: animation .4s forwards;
+}
+
+.emojiObjects {
+    opacity: 0;
+    color: #FFCF48;
+    animation: animation .4s forwards;
+}
+
+.emojiObjectsOutlined {
+    opacity: 0;
+    animation: animation .4s forwards;
+}
+
+.waves {
+    opacity: 0;
+    color: #F4CA00;
+    animation: animation .4s forwards;
+}
+
+.wavesOff {
+    opacity: 0;
+    animation: animation .4s forwards;
+}
+
+.sensorsSidebar {
+    opacity: 0;
+    background: #1A1A1A;
+    border-radius: 3px;
+    padding: 8px;
+    animation: animation .4s forwards;
+}
+
+@keyframes animation {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+

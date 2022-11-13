@@ -1,0 +1,11 @@
+.floor {
+    opacity: 0;
+    animation: floorAnimation .2s forwards;
+    background: #1A1A1A;
+    border-radius: 3px;
+}
+
+@keyframes floorAnimation {
+    0% {opacity: 0;}
+    100% {opacity: 1;}
+}
