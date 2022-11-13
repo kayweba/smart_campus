@@ -18,7 +18,7 @@ class Application : public QMainWindow {
 	signals:
 		void requestUpdateBuildTree();
 		void requestUpdateDbStatus(const QString status, int type);
-		void requestUpdateSensorWidget(Gui::ElectricalSensor* sensor, QString name, bool state, double value, std::shared_ptr<Database::DbElectricalSensorType> & type, QString unit);
+		void requestUpdateSensorWidget(Gui::ElectricalSensor* sensor, QString name, bool state, double value, std::shared_ptr<Database::DbElectricalSensorType> const & type, QString unit);
 		void requestDeleteSensor(std::shared_ptr<Gui::BaseContainer<Gui::ElectricalSensor>> & room, quint32 sensorId);
 		void requestDeleteRoom(std::shared_ptr<Gui::BaseContainer<Gui::BaseContainer<Gui::ElectricalSensor>>>& building, quint32 roomId);
 		void requestDeleteBuilding(quint32 buildingId);
@@ -29,7 +29,7 @@ class Application : public QMainWindow {
 		void OnCustomContextMenu(const QPoint& point);
 		void BuildTree();
 		void UpdateStatus(const QString status, int type);
-		void UpdateSensorWidget(Gui::ElectricalSensor* sensor, QString name, bool state, double value, std::shared_ptr<Database::DbElectricalSensorType> & type, QString unit);
+		void UpdateSensorWidget(Gui::ElectricalSensor* sensor, QString name, bool state, double value, std::shared_ptr<Database::DbElectricalSensorType> const & type, QString unit);
 		void DeleteSensorWidget(std::shared_ptr<Gui::BaseContainer<Gui::ElectricalSensor>>& room, quint32 sensorId);
 		void DeleteRoomWidget(std::shared_ptr<Gui::BaseContainer<Gui::BaseContainer<Gui::ElectricalSensor>>>& building, quint32 roomId);
 		void DeleteBuilding(quint32 buildingId);

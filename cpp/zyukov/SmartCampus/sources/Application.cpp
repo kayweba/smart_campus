@@ -32,7 +32,7 @@ namespace SmartCampus {
 		qRegisterMetaType<Gui::ElectricalSensor>();
 		qRegisterMetaType<Gui::ElectricalSensor>("Gui::ElectricalSensor");
 		qRegisterMetaType<std::shared_ptr<Database::DbElectricalSensorType>>();
-		qRegisterMetaType<std::shared_ptr<Database::DbElectricalSensorType>>("std::shared_ptr<Database::DbElectricalSensorType>&");
+		qRegisterMetaType<std::shared_ptr<Database::DbElectricalSensorType>>("std::shared_ptr<Database::DbElectricalSensorType>const&");
 		qRegisterMetaType<std::shared_ptr<Gui::BaseContainer<Gui::ElectricalSensor>>>();
 		qRegisterMetaType<std::shared_ptr<Gui::BaseContainer<Gui::ElectricalSensor>>>("std::shared_ptr<Gui::BaseContainer<Gui::ElectricalSensor>>&");
 		qRegisterMetaType<std::shared_ptr<Gui::BaseContainer<Gui::BaseContainer<Gui::ElectricalSensor>>>>();
@@ -52,8 +52,8 @@ namespace SmartCampus {
 			this, SLOT(BuildTree()));
 		connect(this, SIGNAL(requestUpdateDbStatus(const QString, int)), 
 			this, SLOT(UpdateStatus(const QString, int)));
-		connect(this, SIGNAL(requestUpdateSensorWidget(Gui::ElectricalSensor*, QString, bool, double, std::shared_ptr<Database::DbElectricalSensorType>&, QString)),
-			this, SLOT(UpdateSensorWidget(Gui::ElectricalSensor*, QString, bool, double, std::shared_ptr<Database::DbElectricalSensorType>&, QString)));
+		connect(this, SIGNAL(requestUpdateSensorWidget(Gui::ElectricalSensor*, QString, bool, double, std::shared_ptr<Database::DbElectricalSensorType>const&, QString)),
+			this, SLOT(UpdateSensorWidget(Gui::ElectricalSensor*, QString, bool, double, std::shared_ptr<Database::DbElectricalSensorType>const&, QString)));
 		connect(this, SIGNAL(requestDeleteSensor(std::shared_ptr<Gui::BaseContainer<Gui::ElectricalSensor>> &, quint32)), 
 			this, SLOT(DeleteSensorWidget(std::shared_ptr<Gui::BaseContainer<Gui::ElectricalSensor>>&, quint32)));
 		connect(this, SIGNAL(requestDeleteRoom(std::shared_ptr<Gui::BaseContainer<Gui::BaseContainer<Gui::ElectricalSensor>>>&, quint32)), 
@@ -90,10 +90,10 @@ namespace SmartCampus {
 		ui->statusbar->showMessage(status);
 	}
 
-	void Application::UpdateSensorWidget(Gui::ElectricalSensor* sensor, QString name, bool state, double value, std::shared_ptr<Database::DbElectricalSensorType> & type, QString unit)
+	void Application::UpdateSensorWidget(Gui::ElectricalSensor* sensor, QString name, bool state, double value, std::shared_ptr<Database::DbElectricalSensorType> const & type, QString unit)
 	{
 		if (sensor != nullptr && !sensor->shouldBeDeleted) {
-			boost::mutex::scoped_lock lock(arrLock);
+			//boost::mutex::scoped_lock lock(arrLock);
 			sensor->SetName(name);
 			sensor->SetState(state);
 			sensor->SetValue(value);
@@ -168,6 +168,7 @@ namespace SmartCampus {
 					auto foundSensor = foundRoom.lock()->findWidget(sensor->GetId());
 					if (foundSensor.lock() == nullptr) {
 						foundSensor = foundRoom.lock()->AddWidget(new Gui::ElectricalSensor(foundRoom.lock().get(), sensor), sensor->GetId());
+						UpdateSensorWidget(foundSensor.lock().get(), sensor->GetName(), sensor->GetState(), sensor->GetValue(), sensor->GetType(), sensor->GetType()->GetUnit());
 						countOfSensors++;
 					}
 				}
@@ -210,6 +211,7 @@ namespace SmartCampus {
 						auto foundSensor = foundRoomPtr->findWidget(sensor->GetId());
 						if (foundSensor.lock() == nullptr) {
 							foundSensor = foundRoom.lock()->AddWidget(new Gui::ElectricalSensor(foundRoom.lock().get(), sensor), sensor->GetId());
+							UpdateSensorWidget(foundSensor.lock().get(), sensor->GetName(), sensor->GetState(), sensor->GetValue(), sensor->GetType(), sensor->GetType()->GetUnit());
 							countOfSensors++;
 						}
 					}
@@ -249,6 +251,7 @@ namespace SmartCampus {
 				auto foundSensor = foundRoom.lock()->findWidget(sensorId);
 				if (foundSensor.lock() == nullptr) {
 					foundSensor = foundRoom.lock()->AddWidget(new Gui::ElectricalSensor(foundRoom.lock().get(), *sensor), (*sensor)->GetId());
+					UpdateSensorWidget(foundSensor.lock().get(), (*sensor)->GetName(), (*sensor)->GetState(), (*sensor)->GetValue(), (*sensor)->GetType(), (*sensor)->GetType()->GetUnit());
 					countOfSensors++;
 				}
 			}
@@ -358,34 +361,44 @@ namespace SmartCampus {
 						auto guiBuildingPtr = guiBuilding.lock();
 						// Iterate rooms
 						QVector<uint32_t> restInPeaceRoomWidget = {};
-						for (int j = 0; j < guiBuildingPtr->GetWidgetsCount(); j++) {
-							auto guiRoom = guiBuildingPtr->getWidget(j);
-							auto guiRoomPtr = guiRoom.lock();
-							// Update all sensors
-							for (int k = 0; k < guiRoomPtr->GetWidgetsCount(); k++) {
-								auto guiSensor = guiRoomPtr->getWidget(k);
-								auto guiSensorPtr = guiSensor.lock();
-								if (!guiSensorPtr->shouldBeDeleted) {
-									auto sensor = std::find_if(m_electricalSensors.begin(), m_electricalSensors.end(), [guiSensorPtr](Database::DbElectricalSensorPtr& seek) {
-										return seek->GetId() == guiSensorPtr->GetId();
-										});
+						if (!guiBuildingPtr->IsMinimazedTop()) {
+							for (int j = 0; j < guiBuildingPtr->GetWidgetsCount(); j++) {
+								auto guiRoom = guiBuildingPtr->getWidget(j);
+								auto guiRoomPtr = guiRoom.lock();
+								if (!guiRoomPtr->IsMinimazedTop()) {
+									// Update all sensors
+									for (int k = 0; k < guiRoomPtr->GetWidgetsCount(); k++) {
+										auto guiSensor = guiRoomPtr->getWidget(k);
+										auto guiSensorPtr = guiSensor.lock();
+										if (!guiSensorPtr->shouldBeDeleted) {
+											auto sensor = std::find_if(m_electricalSensors.begin(), m_electricalSensors.end(), [guiSensorPtr](Database::DbElectricalSensorPtr& seek) {
+												return seek->GetId() == guiSensorPtr->GetId();
+												});
 
-									if (sensor != m_electricalSensors.end()) {
-										// Update sensor's data
-										emit requestUpdateSensorWidget(guiSensorPtr.get(),
-											(*sensor)->GetName(),
-											(*sensor)->GetState(),
-											(*sensor)->GetValue(),
-											(*sensor)->GetType(),
-											(*sensor)->GetType()->GetUnit());
+											if (sensor != m_electricalSensors.end()) {
+												// Update sensor's data
+												if (guiSensorPtr->GetName() != (*sensor)->GetName() ||
+													guiSensorPtr->GetState() != (*sensor)->GetState() ||
+													guiSensorPtr->GetValue() != (*sensor)->GetValue() ||
+													guiSensorPtr->GetType() == nullptr ||
+													guiSensorPtr->GetType()->GetUnit() != (*sensor)->GetType()->GetUnit()) {
+													emit requestUpdateSensorWidget(guiSensorPtr.get(),
+														(*sensor)->GetName(),
+														(*sensor)->GetState(),
+														(*sensor)->GetValue(),
+														(*sensor)->GetType(),
+														(*sensor)->GetType()->GetUnit());
+												}
+											}
+										}
+										else { // Need to remove sensor widget
+											emit requestDeleteSensor(guiRoomPtr, guiSensorPtr->GetId());
+										}
 									}
 								}
-								else { // Need to remove sensor widget
-									emit requestDeleteSensor(guiRoomPtr, guiSensorPtr->GetId());
-								}
+								if (guiRoomPtr->GetWidgetsCount() == 0)
+									restInPeaceRoomWidget.push_back(guiBuildingPtr->getId(j));
 							}
-							if (guiRoomPtr->GetWidgetsCount() == 0)
-								restInPeaceRoomWidget.push_back(guiBuildingPtr->getId(j));
 						}
 						// Remove room widgets if needed
 						for (int it = 0; it < restInPeaceRoomWidget.size(); it++)

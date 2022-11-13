@@ -120,6 +120,7 @@ namespace SmartCampus {	namespace Gui {
 					return std::weak_ptr<T>();
 			}
 			int GetWidgetsCount() const { return m_arrWidgets.size(); }
+			bool IsMinimazedTop() const { return hidingState; }
 		protected:
 
 		private:
