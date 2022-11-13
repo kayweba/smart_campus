@@ -131,3 +131,4 @@ namespace SmartCampus { namespace Database {
 
 	using DbBuildingPtr = std::shared_ptr<DbBuilding>;
 }}
+Q_DECLARE_METATYPE(std::shared_ptr<SmartCampus::Database::DbElectricalSensorType>)

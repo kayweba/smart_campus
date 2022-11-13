@@ -97,7 +97,6 @@ namespace SmartCampus {	namespace Gui {
 					m_arrWidgets.erase(found);
 				}
 				adjustSize();
-				if (m_parent != nullptr) m_parent->adjustSize();
 			}
 			uint32_t getId(int index) {
 				if (index >= 0 && index < m_arrWidgets.size()) {
@@ -179,3 +178,6 @@ namespace SmartCampus {	namespace Gui {
 	};
 
 }} // SmartCampus::Gui
+Q_DECLARE_METATYPE(SmartCampus::Gui::ElectricalSensor)
+Q_DECLARE_METATYPE(std::shared_ptr<SmartCampus::Gui::BaseContainer<SmartCampus::Gui::ElectricalSensor>>)
+Q_DECLARE_METATYPE(std::shared_ptr<SmartCampus::Gui::BaseContainer<SmartCampus::Gui::BaseContainer<SmartCampus::Gui::ElectricalSensor>>>)

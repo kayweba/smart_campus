@@ -28,6 +28,19 @@ namespace SmartCampus {
 		ptrBuildingTreeFloorContextMenu->addAction(ptrTransferFloorAction);
 		ptrBuildingTreeSensorContextMenu->addAction(ptrTransferSensorAction);
 		this->setBaseSize(QSize(width, height));
+/* Register metatype objects */
+		qRegisterMetaType<Gui::ElectricalSensor>();
+		qRegisterMetaType<Gui::ElectricalSensor>("Gui::ElectricalSensor");
+		qRegisterMetaType<std::shared_ptr<Database::DbElectricalSensorType>>();
+		qRegisterMetaType<std::shared_ptr<Database::DbElectricalSensorType>>("std::shared_ptr<Database::DbElectricalSensorType>&");
+		qRegisterMetaType<std::shared_ptr<Gui::BaseContainer<Gui::ElectricalSensor>>>();
+		qRegisterMetaType<std::shared_ptr<Gui::BaseContainer<Gui::ElectricalSensor>>>("std::shared_ptr<Gui::BaseContainer<Gui::ElectricalSensor>>&");
+		qRegisterMetaType<std::shared_ptr<Gui::BaseContainer<Gui::BaseContainer<Gui::ElectricalSensor>>>>();
+		qRegisterMetaType<std::shared_ptr<Gui::BaseContainer<Gui::BaseContainer<Gui::ElectricalSensor>>>>("std::shared_ptr<Gui::BaseContainer<Gui::BaseContainer<Gui::ElectricalSensor>>>&");
+
+		// Create thread to update arrays and widgets
+		m_updateThread = boost::thread(boost::bind(&Application::UpdateThreadFunction, this));
+/* Connect slots */
 		connect(ui->startGenerationButton, &QAction::triggered, this, &Application::OnStartGeneratorClicked);
 		connect(ui->stopGenerationButton, &QAction::triggered, this, &Application::OnStopGeneratorClicked);
 		connect(ui->hideButton, &QPushButton::clicked, this, &Application::OnHideButtonClicked);
@@ -35,41 +48,77 @@ namespace SmartCampus {
 		connect(ptrTransferRoomAction, &QAction::triggered, this, &Application::OnTransferRoomClicked);
 		connect(ptrTransferFloorAction, &QAction::triggered, this, &Application::OnTransferFloorClicked);
 		connect(ptrTransferSensorAction, &QAction::triggered, this, &Application::OnTransferSensorClicked);
+		connect(this, SIGNAL(requestUpdateBuildTree()), 
+			this, SLOT(BuildTree()));
+		connect(this, SIGNAL(requestUpdateDbStatus(const QString, int)), 
+			this, SLOT(UpdateStatus(const QString, int)));
+		connect(this, SIGNAL(requestUpdateSensorWidget(Gui::ElectricalSensor*, QString, bool, double, std::shared_ptr<Database::DbElectricalSensorType>&, QString)),
+			this, SLOT(UpdateSensorWidget(Gui::ElectricalSensor*, QString, bool, double, std::shared_ptr<Database::DbElectricalSensorType>&, QString)));
+		connect(this, SIGNAL(requestDeleteSensor(std::shared_ptr<Gui::BaseContainer<Gui::ElectricalSensor>> &, quint32)), 
+			this, SLOT(DeleteSensorWidget(std::shared_ptr<Gui::BaseContainer<Gui::ElectricalSensor>>&, quint32)));
+		connect(this, SIGNAL(requestDeleteRoom(std::shared_ptr<Gui::BaseContainer<Gui::BaseContainer<Gui::ElectricalSensor>>>&, quint32)), 
+			this, SLOT(DeleteRoomWidget(std::shared_ptr<Gui::BaseContainer<Gui::BaseContainer<Gui::ElectricalSensor>>>&, quint32)));
+		connect(this, SIGNAL(requestDeleteBuilding(quint32)), 
+			this, SLOT(DeleteBuilding(quint32)));
 		m_width = width;
 		m_height = height;
 		countOfSensors = 0;
 		ui->statusbar->showMessage(QString::fromLocal8Bit("Программа запущена"));
-		ConnectToDb("QSQLITE");
+		// Create generator to update DB values
 		generator = Database::ValueGeneratorPtr(new Database::ValueGenerator("settings.json"));
 		generator->ConnectErrorSignal(boost::bind(&Application::OnGeneratorEmitsErrorSignal, this));
 		treeIsVisible = true;
-		LoadData();
-		BuildTree();
 		this->show();
 	}
 
 	Application::~Application() {
-		m_timer.stop();
 		delete(ptrBuildingTreeRoomContextMenu);
 		delete(ptrBuildingTreeFloorContextMenu);
 		delete(ptrBuildingTreeSensorContextMenu);
 		delete(ptrTransferSensorAction);
 		delete(ptrTransferFloorAction);
 		delete(ptrTransferSensorAction);
-		/*while (auto wItem = ui->selectedRoomLayout->takeAt(0)) {
-			delete wItem;
-		}*/
+		if (m_updateThread.joinable()) {
+			m_updateThread.interrupt();
+			m_updateThread.join();
+		}
 		delete(ui);
 	}
 
-	void Application::UpdateStatus(const QString status, MessageType type)
+	void Application::UpdateStatus(const QString status, int type)
 	{
 		ui->statusbar->showMessage(status);
 	}
 
-	void Application::ConnectToDb(const QString& dbType)
+	void Application::UpdateSensorWidget(Gui::ElectricalSensor* sensor, QString name, bool state, double value, std::shared_ptr<Database::DbElectricalSensorType> & type, QString unit)
 	{
-		database = DbManagerPtr(new DBManager(dbType, boost::bind(&Application::UpdateStatus, this, boost::placeholders::_1, boost::placeholders::_2)));
+		if (sensor != nullptr && !sensor->shouldBeDeleted) {
+			boost::mutex::scoped_lock lock(arrLock);
+			sensor->SetName(name);
+			sensor->SetState(state);
+			sensor->SetValue(value);
+			sensor->SetType(type);
+			sensor->SetUnit(unit);
+		}
+	}
+
+	void Application::DeleteSensorWidget(std::shared_ptr<Gui::BaseContainer<Gui::ElectricalSensor>>& room, quint32 sensorId)
+	{
+		boost::mutex::scoped_lock lock(arrLock);
+		room->DeleteWidget(sensorId);
+		countOfSensors--;
+	}
+
+	void Application::DeleteRoomWidget(std::shared_ptr<Gui::BaseContainer<Gui::BaseContainer<Gui::ElectricalSensor>>>& building, quint32 roomId)
+	{
+		boost::mutex::scoped_lock lock(arrLock);
+		building->DeleteWidget(roomId);
+	}
+
+	void Application::DeleteBuilding(quint32 buildingId)
+	{
+		boost::mutex::scoped_lock lock(arrLock);
+		m_guiBuildings.DeleteWidget(buildingId);
 	}
 
 	void Application::OnGeneratorEmitsErrorSignal()
@@ -102,7 +151,7 @@ namespace SmartCampus {
 			uint32_t buildingId = m_ptrBuildingTreeModel->data(selectedIndex.parent().parent(), Qt::DisplayRole, 1).toUInt();
 			QString buildingName = m_ptrBuildingTreeModel->data(selectedIndex.parent().parent(), Qt::DisplayRole, 0).toString();
 			uint32_t roomNumber = m_ptrBuildingTreeModel->data(selectedIndex, Qt::DisplayRole, 0).toUInt();
-
+			boost::mutex::scoped_lock lock(arrLock);
 			// Try to find nested building
 			auto foundBuilding = m_guiBuildings.findWidget(buildingId);
 			if (foundBuilding.lock() == nullptr) {
@@ -138,6 +187,7 @@ namespace SmartCampus {
 			// Selected index - current floor
 			size_t currentFloor = m_ptrBuildingTreeModel->data(selectedIndex, Qt::DisplayRole, 2).toUInt();
 			// Try to find nested building
+			boost::mutex::scoped_lock lock(arrLock);
 			auto foundBuilding = m_guiBuildings.findWidget(buildingId);
 			if (foundBuilding.lock() == nullptr) {
 				foundBuilding = m_guiBuildings.AddWidget(new Gui::GuiBuildings(&m_guiBuildings, QString::fromLocal8Bit("%1").arg(buildingName)), buildingId);
@@ -181,6 +231,7 @@ namespace SmartCampus {
 			uint32_t roomNumber = m_ptrBuildingTreeModel->data(selectedIndex.parent(), Qt::DisplayRole, 0).toUInt();
 			uint32_t sensorId = m_ptrBuildingTreeModel->data(selectedIndex, Qt::DisplayRole, 1).toUInt();
 			// Try to find nested building
+			boost::mutex::scoped_lock lock(arrLock);
 			auto foundBuilding = m_guiBuildings.findWidget(buildingId);
 			if (foundBuilding.lock() == nullptr) {
 				foundBuilding = m_guiBuildings.AddWidget(new Gui::GuiBuildings(&m_guiBuildings, QString::fromLocal8Bit("%1").arg(buildingName)), buildingId);
@@ -203,78 +254,6 @@ namespace SmartCampus {
 			}
 			ui->scrollArea->setMinimumWidth(foundBuilding.lock()->width() + 30);
 		}
-	}
-
-	void Application::LoadData()
-	{
-		ClearData();
-		m_sensorTypes = database->GetElectricalSensorTypes();
-		m_electricalSensors = database->GetElectricalSensors();
-		m_rooms = database->GetRooms();
-		m_buildings = database->GetBuildings();
-	}
-
-	void Application::UpdateUi()
-	{
-		if (cacheArr[0] != CalculateCheckSumm(m_buildings) ||
-			cacheArr[1] != CalculateCheckSumm(m_rooms) ||
-			cacheArr[2] != CalculateCheckSumm(m_electricalSensors)) {
-			// Update tree view and store new cached values
-			m_ptrBuildingTreeModel->redrawData();
-			BuildTree();
-		}
-
-		// Iterate buildings
-		QVector<uint32_t> restInPeaceBuildingWidget = {};
-		for (int i = 0; i < m_guiBuildings.GetWidgetsCount(); i++) {
-			auto guiBuilding = m_guiBuildings.getWidget(i);
-			auto guiBuildingPtr = guiBuilding.lock();
-			// Iterate rooms
-			QVector<uint32_t> restInPeaceRoomWidget = {};
-			for (int j = 0; j < guiBuildingPtr->GetWidgetsCount(); j++) {
-				auto guiRoom = guiBuildingPtr->getWidget(j);
-				auto guiRoomPtr = guiRoom.lock();
-				// Update all sensors
-				for (int k = 0; k < guiRoomPtr->GetWidgetsCount(); k++) {
-					auto guiSensor = guiRoomPtr->getWidget(k);
-					auto guiSensorPtr = guiSensor.lock();
-						if (!guiSensorPtr->shouldBeDeleted) {
-							auto sensor = std::find_if(m_electricalSensors.begin(), m_electricalSensors.end(), [guiSensorPtr](Database::DbElectricalSensorPtr& seek) {
-								return seek->GetId() == guiSensorPtr->GetId();
-							});
-
-							if (sensor != m_electricalSensors.end()) {
-								// Update sensor's data
-								guiSensorPtr->SetName((*sensor)->GetName());
-								guiSensorPtr->SetState((*sensor)->GetState());
-								guiSensorPtr->SetValue((*sensor)->GetValue());
-								guiSensorPtr->SetType((*sensor)->GetType());
-								guiSensorPtr->SetUnit((*sensor)->GetType()->GetUnit());
-								guiSensorPtr->SetSensorPtr(*sensor);
-							}
-						}
-						else { // Need to remove sensor widget
-							guiRoomPtr->DeleteWidget(guiSensorPtr->GetId());
-							countOfSensors--;
-						}
-				}
-				if (guiRoomPtr->GetWidgetsCount() == 0)
-					restInPeaceRoomWidget.push_back(guiBuildingPtr->getId(j));
-			}
-			// Remove room widgets if needed
-			for (int it = 0; it < restInPeaceRoomWidget.size(); it++)
-				guiBuildingPtr->DeleteWidget(restInPeaceRoomWidget[it]);
-
-			if (guiBuildingPtr->GetWidgetsCount() == 0)
-				restInPeaceBuildingWidget.push_back(m_guiBuildings.getId(i));
-		}
-		// Remove building widget if needed
-		for (int it = 0; it < restInPeaceBuildingWidget.size(); it++) {
-			m_guiBuildings.DeleteWidget(restInPeaceBuildingWidget[it]);
-		}
-
-		ui->sensCountLabel->setText(QString::fromLocal8Bit("Отслеживаемые датчики: %1").arg(countOfSensors));
-		ui->sensCountLabel->adjustSize();
 	}
 
 	void Application::OnStartGeneratorClicked()
@@ -302,30 +281,16 @@ namespace SmartCampus {
 
 	void  Application::showEvent(QShowEvent* event)
 	{
-		m_timer.start(1);
-		connect(&m_timer, &QTimer::timeout, this, &Application::Timeout);
 	}
 
 	void Application::closeEvent(QCloseEvent* event)
 	{
 	}
 
-	void Application::Timeout()
-	{
-		LoadData();
-		UpdateUi();
-	}
-
-	void Application::ClearData()
-	{
-		m_sensorTypes.clear();
-		m_electricalSensors.clear();
-		m_rooms.clear();
-		m_buildings.clear();
-	}
-
 	void Application::BuildTree()
 	{
+		m_ptrBuildingTreeModel->redrawData();
+		boost::mutex::scoped_lock lock(arrLock);
 		for (auto& building : m_buildings) {
 			QModelIndex index = m_ptrBuildingTreeModel->addItem({ building->GetDescription(), building->GetId(), building->GetBuildingNumber(), building->GetCountOfFloors() });
 			for (size_t floor = 0; floor < building->GetCountOfFloors(); floor++) {
@@ -349,13 +314,99 @@ namespace SmartCampus {
 				} // for (auto room : m_rooms)
 			} // for (size_t floor = 0; floor < building->GetCountOfFloors(); floor++)
 		} // for (auto& building : m_buildings)
-		for (size_t i = 0; i < 3; i++)
-			cacheArr[i] = 0;
-		// Store arrays check summ to compare them later
-		Database::DbBuildingPtr ptrBuilding = Database::DbBuildingPtr(new Database::DbBuilding(0, 0, "", 0, Database::Coordinates()));
-		cacheArr[0] = CalculateCheckSumm(m_buildings);
-		cacheArr[1] = CalculateCheckSumm(m_rooms);
-		cacheArr[2] = CalculateCheckSumm(m_electricalSensors);
+	}
+
+	void Application::UpdateThreadFunction()
+	{
+		//Create DB connection and transfer update status function into the signal in main thread
+		DBManager database("QSQLITE", boost::bind(&Application::InternalUpdateStatusFunc, this, boost::placeholders::_1, boost::placeholders::_2));
+		try {
+			while (1) {
+				boost::this_thread::sleep_until(boost::chrono::system_clock::now() + boost::chrono::milliseconds(TIMER_UPDATE_MS));
+				boost::this_thread::interruption_point();
+
+				bool needToUpdateTree = false;
+				{
+					boost::mutex::scoped_lock lock(arrLock);
+					m_buildings = database.GetBuildings();
+					m_rooms = database.GetRooms();
+					m_electricalSensors = database.GetElectricalSensors();
+					// Update tree if necessary
+					if (cacheArr[0] != CalculateCheckSumm(m_buildings) ||
+						cacheArr[1] != CalculateCheckSumm(m_rooms) ||
+						cacheArr[2] != CalculateCheckSumm(m_electricalSensors)) {
+
+						// Store arrays check summ to compare them later
+						cacheArr[0] = CalculateCheckSumm(m_buildings);
+						cacheArr[1] = CalculateCheckSumm(m_rooms);
+						cacheArr[2] = CalculateCheckSumm(m_electricalSensors);
+
+						needToUpdateTree = true;
+					}
+				}
+				if (needToUpdateTree) {
+					// Emit the signal to update tree in UI thread e.g. main thread
+					emit requestUpdateBuildTree();
+				}
+
+				// Iterate buildings
+				{
+					boost::mutex::scoped_lock lock(arrLock);
+					QVector<uint32_t> restInPeaceBuildingWidget = {};
+					for (int i = 0; i < m_guiBuildings.GetWidgetsCount(); i++) {
+						auto guiBuilding = m_guiBuildings.getWidget(i);
+						auto guiBuildingPtr = guiBuilding.lock();
+						// Iterate rooms
+						QVector<uint32_t> restInPeaceRoomWidget = {};
+						for (int j = 0; j < guiBuildingPtr->GetWidgetsCount(); j++) {
+							auto guiRoom = guiBuildingPtr->getWidget(j);
+							auto guiRoomPtr = guiRoom.lock();
+							// Update all sensors
+							for (int k = 0; k < guiRoomPtr->GetWidgetsCount(); k++) {
+								auto guiSensor = guiRoomPtr->getWidget(k);
+								auto guiSensorPtr = guiSensor.lock();
+								if (!guiSensorPtr->shouldBeDeleted) {
+									auto sensor = std::find_if(m_electricalSensors.begin(), m_electricalSensors.end(), [guiSensorPtr](Database::DbElectricalSensorPtr& seek) {
+										return seek->GetId() == guiSensorPtr->GetId();
+										});
+
+									if (sensor != m_electricalSensors.end()) {
+										// Update sensor's data
+										emit requestUpdateSensorWidget(guiSensorPtr.get(),
+											(*sensor)->GetName(),
+											(*sensor)->GetState(),
+											(*sensor)->GetValue(),
+											(*sensor)->GetType(),
+											(*sensor)->GetType()->GetUnit());
+									}
+								}
+								else { // Need to remove sensor widget
+									emit requestDeleteSensor(guiRoomPtr, guiSensorPtr->GetId());
+								}
+							}
+							if (guiRoomPtr->GetWidgetsCount() == 0)
+								restInPeaceRoomWidget.push_back(guiBuildingPtr->getId(j));
+						}
+						// Remove room widgets if needed
+						for (int it = 0; it < restInPeaceRoomWidget.size(); it++)
+							emit requestDeleteRoom(guiBuildingPtr, restInPeaceRoomWidget[it]);
+
+						if (guiBuildingPtr->GetWidgetsCount() == 0)
+							restInPeaceBuildingWidget.push_back(m_guiBuildings.getId(i));
+					}
+					// Remove building widget if needed
+					for (int it = 0; it < restInPeaceBuildingWidget.size(); it++) {
+						emit requestDeleteBuilding(restInPeaceBuildingWidget[it]);
+					}
+				}
+			}
+		}
+		catch (boost::thread_interrupted&) {}
+	}
+
+	void Application::InternalUpdateStatusFunc(const QString status, MessageType type)
+	{
+		emit requestUpdateDbStatus(status, (int)type);
 	}
 
 	template <class T>

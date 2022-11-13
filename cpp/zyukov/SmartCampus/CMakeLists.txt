@@ -8,6 +8,7 @@ IF (NOT WIN32)
 ENDIF()
 
 list(APPEND CMAKE_PREFIX_PATH $ENV{QTDIR}/lib/cmake/Qt5)
+SET (CMAKE_INCLUDE_CURRENT_DIR ON)
 
 function(PrintList Header Prop TRG)
     IF ("${TRG}" STREQUAL "")
@@ -46,7 +47,8 @@ ENDIF()
 message("Prefix path: " ${CMAKE_PREFIX_PATH})
 
 FIND_PACKAGE(Qt5 REQUIRED COMPONENTS Widgets Gui Core Sql)
-include_directories(include)
+SET (HW_HEADER_DIR include)
+include_directories(${HW_HEADER_DIR})
 link_directories(lib)
 link_libraries(${CONAN_LIBS})
 
@@ -55,7 +57,7 @@ message("")
 PrintList("Link directories:" LINK_DIRECTORIES "")
 message("")
 
-set(CMAKE_AUTOMOC ON)
+#set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 add_subdirectory(sources)
