@@ -4,4 +4,12 @@
 	<file alias="plug.png">img/plug_20.png</file>
 	<file alias="heat.png">img/heat_20.png</file>
 </qresource>
+<qresource prefix="/svgs">
+	<file>img/first_building.svg</file>
+	<file>img/second_building.svg</file>
+	<file>img/third_building.svg</file>
+	<file>img/fourth_building.svg</file>
+	<file>img/fifth_building.svg</file>
+	<file>img/campus.svg</file>
+</qresource>
 </RCC>
