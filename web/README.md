@@ -15,7 +15,7 @@
 
 В файле `backend/smartkampus/main.py` в переменную `database` необходимо поместить путь до БД.
 Не выходя из папки `backend/smartkampus` и находясь в вирутальном окружении, выполните следующие команды:
-- `pip install requirements.txt` - установка зависимостей
+- `pip install -r requirements.txt` - установка зависимостей
 - `uvicorn main:app --reload` - запуск сервера
 
 Не забудьте выйти из виртуального окружения. Для этого выполните команду `deactivate`.

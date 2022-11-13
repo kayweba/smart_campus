@@ -13,7 +13,7 @@ def set_random_value_in_electrical_sensors_table(database_path: str, update_inte
             time.sleep(int(update_interval))
             update_table(sqlite_connection, cursor, update_column_name, min_random_value, max_random_value)
             # Обновим еще и состояние
-            update_table(sqlite_connection, cursor, 'state', 0, 1)
+            update_table(sqlite_connection, cursor, 'nstate', 0, 1)
 
     except sqlite3.Error as error:
         print('Возникла ошибка при попытке подключения к sqlite3', error)
