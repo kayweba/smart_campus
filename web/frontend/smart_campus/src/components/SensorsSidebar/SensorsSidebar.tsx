@@ -24,7 +24,6 @@ export class SensorsSidebar extends React.Component<SensorsSidebarProps, Sensors
         if (prevProps.buildingId !== this.props.buildingId) {
             this.updateData()
         } else {
-            console.log('clearInterval');
             clearInterval(this.updateData())
         }        
     }
@@ -38,8 +37,6 @@ export class SensorsSidebar extends React.Component<SensorsSidebarProps, Sensors
     }, 1500)
 
     componentWillUnmount() {
-        console.log('componentWillUnmount');
-
         clearInterval(this.updateData())
     }
 

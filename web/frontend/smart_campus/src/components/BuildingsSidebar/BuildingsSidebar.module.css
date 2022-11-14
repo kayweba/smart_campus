@@ -19,3 +19,16 @@
     0% {opacity: 0;}
     100% {opacity: 1;}
 }
+
+.korpus_btn {
+    background: none;
+    background-color: none;
+    outline: none;
+    border: none;
+    cursor: pointer;
+}
+
+.svg:hover {
+    fill: #545454;
+    transition: all .2s linear;
+}
