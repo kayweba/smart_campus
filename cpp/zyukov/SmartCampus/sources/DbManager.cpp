@@ -10,7 +10,8 @@ namespace SmartCampus {
 		dbCount++;
 		m_messageSignal.connect(m_messageSignalHandler);
 		m_dbType = dbType;
-		m_database = QSqlDatabase::addDatabase(m_dbType, "DbManager" + dbCount);
+		QString m_dbName = QString("DbManager" + QString::number(dbCount));
+		m_database = QSqlDatabase::addDatabase(m_dbType, m_dbName);
 		auto dbPath = QDir(QApplication::applicationFilePath());
 		dbPath.cdUp();
 		dbPath.cd(QString("Database"));
@@ -31,6 +32,7 @@ namespace SmartCampus {
 	DBManager::~DBManager()
 	{
 		m_database.close();
+		QSqlDatabase::removeDatabase(m_dbName);
 	}
 
 	QVector<Database::DbElectricalSensorPtr> DBManager::GetElectricalSensors() const

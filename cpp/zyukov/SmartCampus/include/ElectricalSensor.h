@@ -97,7 +97,6 @@ namespace SmartCampus {	namespace Gui {
 					m_arrWidgets.erase(found);
 				}
 				adjustSize();
-				if (m_parent != nullptr) m_parent->adjustSize();
 			}
 			uint32_t getId(int index) {
 				if (index >= 0 && index < m_arrWidgets.size()) {
@@ -121,6 +120,7 @@ namespace SmartCampus {	namespace Gui {
 					return std::weak_ptr<T>();
 			}
 			int GetWidgetsCount() const { return m_arrWidgets.size(); }
+			bool IsMinimazedTop() const { return hidingState; }
 		protected:
 
 		private:
@@ -179,3 +179,6 @@ namespace SmartCampus {	namespace Gui {
 	};
 
 }} // SmartCampus::Gui
+Q_DECLARE_METATYPE(SmartCampus::Gui::ElectricalSensor)
+Q_DECLARE_METATYPE(std::shared_ptr<SmartCampus::Gui::BaseContainer<SmartCampus::Gui::ElectricalSensor>>)
+Q_DECLARE_METATYPE(std::shared_ptr<SmartCampus::Gui::BaseContainer<SmartCampus::Gui::BaseContainer<SmartCampus::Gui::ElectricalSensor>>>)

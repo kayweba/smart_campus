@@ -26,5 +26,6 @@ namespace SmartCampus {
 			bool dbState;
 			QSqlDatabase m_database;
 			QString m_dbType;
+			QString m_dbName;
 	};
 }

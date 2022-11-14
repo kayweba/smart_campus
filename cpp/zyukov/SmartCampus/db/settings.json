@@ -1,6 +1,6 @@
 {
 	"data": {
-		"interval": 300,
+		"interval": 100,
 		"max_value": 230
 	}
 }
