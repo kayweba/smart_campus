@@ -11,7 +11,6 @@ namespace SmartCampus {
 	m_guiBuildings(ui->selectedRoomsView, "", false)
 	{
 		ui->setupUi(this);
-		resize(QDesktopWidget().availableGeometry(this).size() * 0.9);
 		m_guiBuildings.setContentsMargins(QMargins(0,0,0,0));
 		m_ptrBuildingTreeModel = Gui::BuildingTreeModelPtr(new Gui::BuildingTreeModel());
 		ui->buildingTree->setModel(m_ptrBuildingTreeModel.get());
@@ -27,7 +26,8 @@ namespace SmartCampus {
 		ptrBuildingTreeRoomContextMenu->addAction(ptrTransferRoomAction);
 		ptrBuildingTreeFloorContextMenu->addAction(ptrTransferFloorAction);
 		ptrBuildingTreeSensorContextMenu->addAction(ptrTransferSensorAction);
-		this->setBaseSize(QSize(width, height));
+/*Drawing campus widgets*/
+		DrawCampus();
 /* Register metatype objects */
 		qRegisterMetaType<Gui::ElectricalSensor>();
 		qRegisterMetaType<Gui::ElectricalSensor>("Gui::ElectricalSensor");
@@ -68,7 +68,8 @@ namespace SmartCampus {
 		generator = Database::ValueGeneratorPtr(new Database::ValueGenerator("settings.json"));
 		generator->ConnectErrorSignal(boost::bind(&Application::OnGeneratorEmitsErrorSignal, this));
 		treeIsVisible = true;
-		this->show();
+		adjustSize();
+		showMaximized();
 	}
 
 	Application::~Application() {
@@ -78,6 +79,8 @@ namespace SmartCampus {
 		delete(ptrTransferSensorAction);
 		delete(ptrTransferFloorAction);
 		delete(ptrTransferSensorAction);
+		delete(campusWidgetLayout);
+		delete(m_campusWidget);
 		if (m_updateThread.joinable()) {
 			m_updateThread.interrupt();
 			m_updateThread.join();
@@ -284,6 +287,7 @@ namespace SmartCampus {
 
 	void  Application::showEvent(QShowEvent* event)
 	{
+		m_campusWidget->resize(ui->campusView->size());
 	}
 
 	void Application::closeEvent(QCloseEvent* event)
@@ -420,6 +424,14 @@ namespace SmartCampus {
 	void Application::InternalUpdateStatusFunc(const QString status, MessageType type)
 	{
 		emit requestUpdateDbStatus(status, (int)type);
+	}
+
+	void Application::DrawCampus()
+	{
+		campusWidgetLayout = new QHBoxLayout();
+		ui->campusView->setLayout(campusWidgetLayout);
+		m_campusWidget = new Gui::CampusWidget("campus.svg", 0xbddbb6, ui->campusView);
+		campusWidgetLayout->addWidget(m_campusWidget);
 	}
 
 	template <class T>

@@ -62,6 +62,7 @@ IF "%BUILD_TYPE%" == "Debug" (
 	xcopy /DICYQ %QTDIR%\bin\Qt5Sql%DEBUG%.dll .\build\bin >nul
 	xcopy /DICYQ %QTDIR%\bin\Qt5Widgets%DEBUG%.dll .\build\bin >nul
 	xcopy /DICYQ %QTDIR%\bin\Qt5Gui%DEBUG%.dll .\build\bin >nul
+	xcopy /DICYQ %QTDIR%\bin\Qt5Svg%DEBUG%.dll .\build\bin >nul
 	xcopy /DICYQ .\db\korpus_1.db .\build\bin >nul
 	xcopy /DICYQ .\db\settings.json .\build\bin >nul
 :endend

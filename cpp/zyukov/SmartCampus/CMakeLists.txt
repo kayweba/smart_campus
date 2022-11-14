@@ -46,7 +46,7 @@ ENDIF()
 
 message("Prefix path: " ${CMAKE_PREFIX_PATH})
 
-FIND_PACKAGE(Qt5 REQUIRED COMPONENTS Widgets Gui Core Sql)
+FIND_PACKAGE(Qt5 REQUIRED COMPONENTS Widgets Gui Core Sql Svg)
 SET (HW_HEADER_DIR include)
 include_directories(${HW_HEADER_DIR})
 link_directories(lib)

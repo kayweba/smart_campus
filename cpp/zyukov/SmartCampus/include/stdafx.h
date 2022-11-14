@@ -9,6 +9,7 @@
 #include <QTextCodec>
 #include <QPushButton>
 #include <QTimer>
+#include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QDesktopWidget>
 #include <map>

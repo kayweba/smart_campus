@@ -5,6 +5,7 @@
 #include <QMap>
 #include <ui_mainwindow.h>
 #include <ElectricalSensor.h>
+#include <CampusWidget.h>
 
 namespace  SmartCampus {
 #define TIMER_UPDATE_MS 50
@@ -43,6 +44,7 @@ private slots:
 	private:
 		void UpdateThreadFunction();
 		void InternalUpdateStatusFunc(const QString status, MessageType type);
+		void DrawCampus();
 		template <class T>
 		unsigned int CalculateCheckSumm(QVector<T>& arr);
 		Ui::MainWindow* ui;
@@ -67,6 +69,8 @@ private slots:
 		QAction* ptrTransferRoomAction;
 		QAction* ptrTransferFloorAction;
 		QAction* ptrTransferSensorAction;
+		QHBoxLayout* campusWidgetLayout;
+		Gui::CampusWidget* m_campusWidget;
 		Gui::BuildingTreeModelPtr m_ptrBuildingTreeModel;
 };
 
