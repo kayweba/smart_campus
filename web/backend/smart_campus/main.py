@@ -4,6 +4,8 @@ from unicodedata import numeric
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from generator.main import generator
+
 import sqlite3
 
 app = FastAPI()
@@ -145,3 +147,19 @@ def get_rooms_by_building(building_id: int):
         if (connection):
             connection.close()
             print('Соединение с SQLite закрыто')
+            
+            
+@app.get('/startGenerator')
+def start_generator(interval: int):
+    status: str = ''
+    try:
+        generator(activated=True, interval=interval)
+        status = 'OK'
+    except Error:
+        status = 'ERROR'
+        print(Error)
+    return status       
+    
+@app.get('/stopGenerator')
+def stop_generator():
+    generator(activated=False)

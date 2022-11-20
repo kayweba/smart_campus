@@ -7,7 +7,10 @@ import { RoomComponent } from '../Room/RoomComponent'
 import styles from './Rooms.module.css'
 
 type RoomsComponentProps = {
-    rooms: RoomsSet
+    rooms: RoomsSet,
+    updateInterval: number,
+    generatorIsActive: boolean,
+    buildingId: number,
 }
 
 type RoomsComponentState = {
@@ -19,16 +22,7 @@ export class RoomsComponent extends React.Component<RoomsComponentProps, RoomsCo
     }
 
     public render(): React.ReactNode {
-
-        const setErrorFlag = (flag: boolean): void => {
-            this.setState({
-                ...this.state,
-                error: flag
-            })
-        }
-
         return (
-
             <>
                 <Grid container sx={{ margin: '0 auto' }} className={styles.gridContainer} direction="row" spacing={1}>
                     {
@@ -45,11 +39,13 @@ export class RoomsComponent extends React.Component<RoomsComponentProps, RoomsCo
                             : this.props.rooms.map(item =>
                                 <Grid key={item.name} item sx={{ marginBottom: '10px' }}>
                                     <RoomComponent
-                                        setErrorFlag={setErrorFlag}
                                         name={item.name}
                                         electricalSensorsCount={item.electrical_sensors_count}
                                         id={item.id}
                                         roomNumber={item.room_number}
+                                        updateInterval={this.props.updateInterval}
+                                        generatorIsActive={this.props.generatorIsActive}
+                                        buildingId={this.props.buildingId}
                                     />
                                 </Grid>
                             )

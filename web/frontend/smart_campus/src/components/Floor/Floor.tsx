@@ -7,7 +7,10 @@ import style from './Floor.module.css'
 
 type FloorProps = {
     rooms: RoomsSet,
-    floorNumber: string
+    floorNumber: string,
+    updateInterval: number,
+    generatorIsActive: boolean,
+    buildingId: number,
 }
 
 export class Floor extends React.Component<FloorProps> {
@@ -17,7 +20,7 @@ export class Floor extends React.Component<FloorProps> {
                 <Grid alignItems={'space-between'} sx={{ marginTop: '20px' }}>
                     <h1 style={{ textAlign: 'center', fontSize: '16px', lineHeight: '8px' }}>Этаж: {this.props.floorNumber}</h1>
                     <Grid item justifyContent={'space-between'} alignItems={'center'} margin={'10px auto 10px'}className={style.floor}>
-                        <RoomsComponent rooms={this.props.rooms} />
+                        <RoomsComponent buildingId={this.props.buildingId} rooms={this.props.rooms} updateInterval={this.props.updateInterval} generatorIsActive={this.props.generatorIsActive} />
                     </Grid>
                 </Grid>
 

@@ -36,6 +36,7 @@
     background: #1A1A1A;
     border-radius: 3px;
     padding: 8px;
+    height: 85%;
     animation: animation .4s forwards;
 }
 

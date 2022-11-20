@@ -7,7 +7,9 @@ import { BuildingSensorsService } from "../../services/BuildingSensorsService/Bu
 import style from './SensorsSidebar.module.css'
 
 type SensorsSidebarProps = {
-    buildingId: number
+    buildingId: number,
+    updateInterval: number,
+    generatorIsActive: boolean,
 }
 
 type SensorsSidebarState = {
@@ -20,12 +22,18 @@ export class SensorsSidebar extends React.Component<SensorsSidebarProps, Sensors
         buildingSensors: {} as BuildingSensorsModel
     }
 
-    async componentDidUpdate(prevProps: Readonly<SensorsSidebarProps>, prevState: Readonly<{}>, snapshot?: any) {
-        if (prevProps.buildingId !== this.props.buildingId) {
-            this.updateData()
-        } else {
+    componentDidMount(): void {
+        this.updateData()
+    }
+
+    componentDidUpdate(): void {
+        if (!this.props.generatorIsActive) {
             clearInterval(this.updateData())
-        }        
+        }
+    }
+
+    componentWillUnmount() {
+        clearInterval(this.updateData())
     }
 
     updateData = () => setInterval(async () => {
@@ -34,11 +42,7 @@ export class SensorsSidebar extends React.Component<SensorsSidebarProps, Sensors
             ...this.state,
             buildingSensors: buildingSensors
         })
-    }, 1500)
-
-    componentWillUnmount() {
-        clearInterval(this.updateData())
-    }
+    }, this.props.updateInterval)
 
     private getItem(electricalSensorTypeName: string, state: number): ReactNode {
         switch (electricalSensorTypeName) {

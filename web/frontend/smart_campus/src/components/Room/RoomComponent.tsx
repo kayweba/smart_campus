@@ -13,7 +13,10 @@ type RoomComponentProps = {
     electricalSensorsCount: number,
     id: number,
     roomNumber: number,
-    setErrorFlag: (flag: boolean) => void,
+    updateInterval: number,
+    generatorIsActive: boolean,
+    buildingId: number,
+
 }
 
 type RoomComponentState = {
@@ -57,7 +60,6 @@ export class RoomComponent extends React.Component<RoomComponentProps, RoomCompo
                         </Box>
                     </CardContent>
                 </Card>
-
                 <ModalWindow roomName={name} modalOpen={this.state.modalOpen} onClose={handleClose} data={this.state.modalData} />
 
             </>
@@ -70,8 +72,14 @@ export class RoomComponent extends React.Component<RoomComponentProps, RoomCompo
         statuses: [] as Array<string>
     }
 
-    componentDidMount() {
+    componentDidMount(): void {
         this.updateData()
+    }
+
+    componentDidUpdate(): void {
+        if (!this.props.generatorIsActive) {
+            clearInterval(this.updateData())
+        }
     }
 
     componentWillUnmount() {
@@ -81,7 +89,11 @@ export class RoomComponent extends React.Component<RoomComponentProps, RoomCompo
     updateData = () => setInterval(async () => {
         const data: Array<RoomsElectrical> = await new ElectricalService().getRoomsElectricalSensorsData(this.props.id)
         const statuses: Array<string> = []
-
+        this.setState({
+            ...this.state,
+            modalData: data,
+            statuses: statuses
+        })
         data.forEach(item => {
             if ((item.value < 200.5) || (item.value > 229.6)) {
                 statuses.push('WARNING')
@@ -91,12 +103,7 @@ export class RoomComponent extends React.Component<RoomComponentProps, RoomCompo
         }
         )
 
-        this.setState({
-            ...this.state,
-            modalData: data,
-            statuses: statuses
-        })
 
-    }, 1500)
 
+    }, this.props.updateInterval)
 }

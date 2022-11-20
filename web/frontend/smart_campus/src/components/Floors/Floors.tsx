@@ -3,10 +3,12 @@ import React from "react";
 import { FloorsModel } from "../../models/FloorModel";
 import { FloorsService } from "../../services/FloorsService/FloorsService";
 import { Floor } from "../Floor/Floor";
-import schemeGif from '../../assets/sammy-lightning.gif'
+
 
 type FloorsProps = {
-    buildingId: number
+    buildingId: number,
+    updateInterval: number,
+    generatorIsActive: boolean,
 }
 
 type FloorsState = {
@@ -19,8 +21,17 @@ export class Floors extends React.Component<FloorsProps, FloorsState> {
         floors: {} as FloorsModel
     }
 
-    async componentDidUpdate(prevProps: Readonly<FloorsProps>, prevState: Readonly<FloorsState>, snapshot?: any) {
-        if (prevProps !== this.props) {
+    async componentDidMount() {
+        console.log(this.props.buildingId)
+        const data = await new FloorsService().getFloorsDataByBuildingId(this.props.buildingId)
+        this.setState({
+            ...this.state,
+            floors: data
+        })
+    }
+
+    async componentDidUpdate(prevProps: Readonly<FloorsProps>) {
+        if (prevProps.buildingId !== this.props.buildingId) {
             const data = await new FloorsService().getFloorsDataByBuildingId(this.props.buildingId)
             this.setState({
                 ...this.state,
@@ -32,17 +43,11 @@ export class Floors extends React.Component<FloorsProps, FloorsState> {
     public render(): React.ReactNode {
         return (
             <>
-
-
                 <Grid container flexDirection={'column'}>
                     {
-                        this.props.buildingId > 0
-                        ?
-                            Object.entries(this.state.floors).map(([key, value]) => (
-                                <Floor rooms={value} floorNumber={key} key={key} />
-                            ))
-                        : <img src={schemeGif} alt="Схема " style={{ margin: '0 auto' }} />
-
+                        Object.entries(this.state.floors).map(([key, value]) => (
+                            <Floor buildingId={this.props.buildingId} rooms={value} floorNumber={key} key={key} updateInterval={this.props.updateInterval} generatorIsActive={this.props.generatorIsActive} />
+                        ))
                     }
 
                 </Grid>
