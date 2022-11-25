@@ -26,8 +26,6 @@ namespace SmartCampus {
 		ptrBuildingTreeRoomContextMenu->addAction(ptrTransferRoomAction);
 		ptrBuildingTreeFloorContextMenu->addAction(ptrTransferFloorAction);
 		ptrBuildingTreeSensorContextMenu->addAction(ptrTransferSensorAction);
-/*Drawing campus widgets*/
-		DrawCampus();
 /* Register metatype objects */
 		qRegisterMetaType<Gui::ElectricalSensor>();
 		qRegisterMetaType<Gui::ElectricalSensor>("Gui::ElectricalSensor");
@@ -69,6 +67,8 @@ namespace SmartCampus {
 		generator->ConnectErrorSignal(boost::bind(&Application::OnGeneratorEmitsErrorSignal, this));
 		treeIsVisible = true;
 		adjustSize();
+		/*Drawing campus widgets*/
+		DrawCampus();
 		showMaximized();
 	}
 
@@ -122,6 +122,10 @@ namespace SmartCampus {
 	{
 		boost::mutex::scoped_lock lock(arrLock);
 		m_guiBuildings.DeleteWidget(buildingId);
+	}
+
+	void Application::OnBuildingEnterButtonClicked(uint16_t id)
+	{
 	}
 
 	void Application::OnGeneratorEmitsErrorSignal()
@@ -430,8 +434,19 @@ namespace SmartCampus {
 	{
 		campusWidgetLayout = new QHBoxLayout();
 		ui->campusView->setLayout(campusWidgetLayout);
-		m_campusWidget = new Gui::CampusWidget("campus.svg", 0xbddbb6, ui->campusView);
+		uint16_t width = 107;
+		uint16_t height = 209;
+		m_campusWidget = new Gui::CampusWidget("campus.svg", 0xbddbb6, width, height, ui->campusView);
 		campusWidgetLayout->addWidget(m_campusWidget);
+		{
+			boost::mutex::scoped_lock lock(arrLock);
+			for (auto building : m_buildings) {
+				QPoint offset = building->GetOffset();
+				Gui::BuildingWidget* buildingWidget = new Gui::BuildingWidget(building->GetId(), building->GetFileName(), 0x78b0f0, building->GetSize(), offset.x(), offset.y(), m_campusWidget);
+				m_campusWidget->AddNewBuilding(building->GetId(), buildingWidget);
+				buildingWidget->ConnectEnterButtonToSignal(boost::bind(&Application::OnBuildingEnterButtonClicked, this, boost::placeholders::_1));
+			}
+		}
 	}
 
 	template <class T>

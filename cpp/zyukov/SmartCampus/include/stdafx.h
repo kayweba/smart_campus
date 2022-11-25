@@ -7,6 +7,7 @@
 #include <QVector>
 #include <QDir>
 #include <QTextCodec>
+#include <QPoint>
 #include <QPushButton>
 #include <QTimer>
 #include <QHBoxLayout>
@@ -26,6 +27,7 @@
 
 // Forward declarations
 namespace SmartCampus {
+#define EARTH_RADUIS_IN_KILOMETERS 6371.0088
 	enum MessageType {
 		ErrorMessage = 0,
 		LogMessage = 1

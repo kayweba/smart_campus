@@ -215,14 +215,17 @@ namespace SmartCampus {
 		//Пока можно читать результат
 		while (query.next())
 		{
-			Database::Coordinates coordinates;
-			coordinates.NValue = query.value(4).toDouble();
-			coordinates.EValue = query.value(5).toDouble();
+			QSize size;
+			size.setWidth(query.value(4).toUInt());
+			size.setHeight(query.value(5).toUInt());
+			QPoint offset(query.value(6).toUInt(), query.value(7).toUInt());
 			result.append(Database::DbBuildingPtr(new Database::DbBuilding(query.value(0).toUInt(), 
 						query.value(1).toUInt(), 
 						query.value(2).toString(), 
 						query.value(3).toUInt(),
-						coordinates)));
+						size,
+						offset,
+						query.value(8).toString())));
 		}
 		return result;
 	}

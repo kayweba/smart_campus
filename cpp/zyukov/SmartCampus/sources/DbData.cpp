@@ -99,15 +99,19 @@ namespace SmartCampus {
 			return (m_id + m_description.size() + m_number + m_buildingId);
 		}
 
-		DbBuilding::DbBuilding() : DbBuilding(0, 0, "", 0, Coordinates()) {}
+		DbBuilding::DbBuilding() : DbBuilding(0, 0, QString(""), 0, QSize(0,0), QPoint(0,0), QString("")) {}
 
-		DbBuilding::DbBuilding(uint32_t id, uint32_t buildingNumber, QString description, uint32_t countOfFloors, Coordinates coordinates)
+		DbBuilding::DbBuilding(uint32_t id, uint32_t buildingNumber, QString & description, uint32_t countOfFloors, QSize& size, QPoint & offset, QString & svgFileName)
 		{
 			m_id = id;
 			m_buildingNumber = buildingNumber;
 			m_description = description;
 			m_countOfFloors = countOfFloors;
-			m_coordinates = coordinates;
+			m_width = size.width();
+			m_height = size.height();
+			m_e_offset = offset.x();
+			m_n_offset = offset.y();
+			m_svgFileName = svgFileName;
 		}
 		
 		DbBuilding::~DbBuilding()
@@ -118,16 +122,18 @@ namespace SmartCampus {
 		uint32_t DbBuilding::GetId() const { return m_id; }
 		uint32_t DbBuilding::GetBuildingNumber() const { return m_buildingNumber; }
 		QString DbBuilding::GetDescription() const { return m_description; }
+		QSize DbBuilding::GetSize() const { return QSize(m_width, m_height); }
+		QPoint DbBuilding::GetOffset() const { return QPoint(m_e_offset, m_n_offset); }
 		uint32_t DbBuilding::GetCountOfFloors() const { return m_countOfFloors; }
-		Coordinates DbBuilding::GetCoordinates() const { return m_coordinates; }
+		QString DbBuilding::GetFileName() const { return m_svgFileName; }
 
 		void DbBuilding::SetId(uint32_t id) { m_id = id; }
 		void DbBuilding::SetBuildingNumber(uint32_t buildingNumber) { m_buildingNumber = buildingNumber; }
 		void DbBuilding::SetDescription(QString description) { m_description = description; }
+		void DbBuilding::SetSize(QSize& newSize) { m_width = newSize.width(); m_height = newSize.height(); }
 		void DbBuilding::SetCountOfFloors(uint32_t countOfFloors) { m_countOfFloors = countOfFloors; }
-		void DbBuilding::SetCoordinates(Coordinates coordinates) { m_coordinates = coordinates; }
 		unsigned int DbBuilding::calculateSize()
 		{
-			return (m_id + m_buildingNumber + m_description.size() + m_countOfFloors + m_coordinates.EValue + m_coordinates.NValue);
+			return (m_id + m_buildingNumber + m_description.size() + m_countOfFloors + m_width + m_height + m_e_offset + m_n_offset + m_svgFileName.size());
 		}
 }}

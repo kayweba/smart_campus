@@ -3,6 +3,7 @@
 	<file alias="light.png">img/light_20.png</file>
 	<file alias="plug.png">img/plug_20.png</file>
 	<file alias="heat.png">img/heat_20.png</file>
+	<file alias="enter.png">img/enter.png</file>
 </qresource>
 <qresource prefix="/svgs">
 	<file>img/first_building.svg</file>
