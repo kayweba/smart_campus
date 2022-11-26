@@ -22,27 +22,34 @@ export class SensorsSidebar extends React.Component<SensorsSidebarProps, Sensors
         buildingSensors: {} as BuildingSensorsModel
     }
 
-    componentDidMount(): void {
-        this.updateData()
-    }
+    public render(): React.ReactNode {
+        return (
+            <Grid container flexDirection='column'>
+                {
+                    Object.entries(this.state.buildingSensors).map(([key, buildingsSensor]) => (
+                        <div key={key}>
+                            <h3 key={buildingsSensor[0].electricalSensorValue} style={{ lineHeight: '0', textAlign: 'center' }}>Этаж: {key}</h3>
+                            <Grid key={key} item className={style.sensorsSidebar}>
+                                {
+                                    buildingsSensor.map((buildingSensor, key) =>
+                                        <Box key={key}>
+                                            {this.getItem(buildingSensor.electricalSensorTypeName, buildingSensor.electricalSensorState)}
+                                            <p><span style={{ fontWeight: 'bold' }}>Состояние</span>: {buildingSensor.electricalSensorState === 1 ? 'Вкл' : 'Выкл'}</p>
+                                            <p><span style={{ fontWeight: 'bold' }}>Значение:</span> {buildingSensor.electricalSensorValue}</p>
+                                            <p><span style={{ fontWeight: 'bold' }}>Описание:</span> {buildingSensor.electricalSensorName}</p>
+                                            <p><span style={{ fontWeight: 'bold' }}>Номер комнаты:</span> {buildingSensor.roomNumber}</p>
+                                        </Box>
 
-    componentDidUpdate(): void {
-        if (!this.props.generatorIsActive) {
-            clearInterval(this.updateData())
-        }
-    }
+                                    )
+                                }
 
-    componentWillUnmount() {
-        clearInterval(this.updateData())
+                            </Grid>
+                        </div>
+                    ))
+                }
+            </Grid>
+        )
     }
-
-    updateData = () => setInterval(async () => {
-        const buildingSensors = await new BuildingSensorsService().getBuildingSensorsData(this.props.buildingId)
-        this.setState({
-            ...this.state,
-            buildingSensors: buildingSensors
-        })
-    }, this.props.updateInterval)
 
     private getItem(electricalSensorTypeName: string, state: number): ReactNode {
         switch (electricalSensorTypeName) {
@@ -84,32 +91,19 @@ export class SensorsSidebar extends React.Component<SensorsSidebarProps, Sensors
         }
     }
 
-    public render(): React.ReactNode {
-        return (
-            <Grid container flexDirection='column'>
-                {
-                    Object.entries(this.state.buildingSensors).map(([key, buildingsSensor]) => (
-                        <div key={key}>
-                            <h3 key={buildingsSensor[0].electricalSensorValue} style={{ lineHeight: '0', textAlign: 'center' }}>Этаж: {key}</h3>
-                            <Grid key={key} item className={style.sensorsSidebar}>
-                                {
-                                    buildingsSensor.map((buildingSensor, key) =>
-                                        <Box key={key}>
-                                            {this.getItem(buildingSensor.electricalSensorTypeName, buildingSensor.electricalSensorState)}
-                                            <p><span style={{ fontWeight: 'bold' }}>Состояние</span>: {buildingSensor.electricalSensorState === 1 ? 'Вкл' : 'Выкл'}</p>
-                                            <p><span style={{ fontWeight: 'bold' }}>Значение:</span> {buildingSensor.electricalSensorValue}</p>
-                                            <p><span style={{ fontWeight: 'bold' }}>Описание:</span> {buildingSensor.electricalSensorName}</p>
-                                            <p><span style={{ fontWeight: 'bold' }}>Номер комнаты:</span> {buildingSensor.roomNumber}</p>
-                                        </Box>
-
-                                    )
-                                }
-
-                            </Grid>
-                        </div>
-                    ))
-                }
-            </Grid>
-        )
+    componentDidMount(): void {
+        this.updateData()
     }
+
+    componentWillUnmount() {
+        clearInterval(this.updateData())
+    }
+
+    updateData = () => setInterval(async () => {
+        const buildingSensors = await new BuildingSensorsService().getBuildingSensorsData(this.props.buildingId)
+        this.setState({
+            ...this.state,
+            buildingSensors: buildingSensors
+        })
+    }, this.props.updateInterval + 200)
 }

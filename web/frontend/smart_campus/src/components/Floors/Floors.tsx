@@ -21,8 +21,22 @@ export class Floors extends React.Component<FloorsProps, FloorsState> {
         floors: {} as FloorsModel
     }
 
+    public render(): React.ReactNode {
+        return (
+            <>
+                <Grid container flexDirection={'column'}>
+                    {
+                        Object.entries(this.state.floors).map(([key, value]) => (
+                            <Floor buildingId={this.props.buildingId} rooms={value} floorNumber={key} key={key} updateInterval={this.props.updateInterval} generatorIsActive={this.props.generatorIsActive} />
+                        ))
+                    }
+                </Grid>
+
+            </>
+        )
+    }
+
     async componentDidMount() {
-        console.log(this.props.buildingId)
         const data = await new FloorsService().getFloorsDataByBuildingId(this.props.buildingId)
         this.setState({
             ...this.state,
@@ -38,21 +52,5 @@ export class Floors extends React.Component<FloorsProps, FloorsState> {
                 floors: data
             })
         }
-    }
-
-    public render(): React.ReactNode {
-        return (
-            <>
-                <Grid container flexDirection={'column'}>
-                    {
-                        Object.entries(this.state.floors).map(([key, value]) => (
-                            <Floor buildingId={this.props.buildingId} rooms={value} floorNumber={key} key={key} updateInterval={this.props.updateInterval} generatorIsActive={this.props.generatorIsActive} />
-                        ))
-                    }
-
-                </Grid>
-
-            </>
-        )
     }
 }

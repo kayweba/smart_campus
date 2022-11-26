@@ -11,11 +11,11 @@ type StatusColorComponentProps = {
 export class StatusColorComponent extends React.Component<StatusColorComponentProps> {
     public render(): React.ReactNode {
         return (
-            <Box sx={{ display: 'flex', flexDirection: 'row', marginTop: '8px', marginBottom: '2px' }}>
+            <Box sx={{ display: 'flex', flexDirection: 'row', marginTop: '8px', marginBottom: '2px', flexWrap: 'wrap', width: '100px' }}>
                 {this.props.statuses.map((status, key) =>
                     status === 'WARNING'
-                        ? <div key={key} className={style.errorStatus} />
-                        : <div key={key} className={style.normalStatus} />
+                        ? <div key={key} className={style.errorStatus} style={{ marginTop: '10px' }} />
+                        : <div key={key} className={style.normalStatus} style={{ marginTop: '10px' }} />
                 )}
             </Box>
         )
