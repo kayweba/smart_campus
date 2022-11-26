@@ -19,10 +19,12 @@ namespace SmartCampus { namespace Gui {
 
 	class CGenericWidget : public QFrame {
 		public:
-			CGenericWidget(const QString & svgName, const int color, float shadowOffset = 0.0, QWidget * parent = nullptr) noexcept;
+			CGenericWidget(const QString & svgName, const int color, float shadowOffset, uint16_t width, uint16_t height, QWidget * parent = nullptr) noexcept;
 			~CGenericWidget();
 			QSize GetSize() const;
 			float GetShadowOffset() const;
+			QSize maskSize() const;
+			float PixelRatio() const;
 		protected:
 			virtual void UpdateMask(QResizeEvent * _event);
 			void resizeEvent(QResizeEvent* _event) override;
@@ -34,6 +36,11 @@ namespace SmartCampus { namespace Gui {
 			QPixmap * maskmap;
 			QWidget * m_parent;	
 			float m_shadowOffset;
+			uint16_t _width;
+			uint16_t _height;
+			uint16_t maskWidth;
+			uint16_t maskHeight;
+			float pixelRatio;
 	};
 
 }} // SmartCampus::Gui

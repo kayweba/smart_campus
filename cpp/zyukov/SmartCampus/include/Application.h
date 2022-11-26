@@ -6,6 +6,7 @@
 #include <ui_mainwindow.h>
 #include <ElectricalSensor.h>
 #include <CampusWidget.h>
+#include <BuildingWidget.h>
 
 namespace  SmartCampus {
 #define TIMER_UPDATE_MS 50
@@ -42,6 +43,7 @@ private slots:
 		void showEvent(QShowEvent* event) override;
 		void closeEvent(QCloseEvent* event) override;
 	private:
+		void OnBuildingEnterButtonClicked(uint16_t id);
 		void UpdateThreadFunction();
 		void InternalUpdateStatusFunc(const QString status, MessageType type);
 		void DrawCampus();

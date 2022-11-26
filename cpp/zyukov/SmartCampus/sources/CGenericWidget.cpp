@@ -2,14 +2,17 @@
 
 namespace SmartCampus { namespace Gui {
 
-	CGenericWidget::CGenericWidget(const QString & svgName, const int color, float shadowOffset, QWidget * parent) noexcept
+	CGenericWidget::CGenericWidget(const QString & svgName, const int color, float shadowOffset, uint16_t width, uint16_t height, QWidget * parent) noexcept
 		: QFrame(parent)
 	{
 		m_shadowOffset = shadowOffset;
 		m_parent = parent;
 		m_name = svgName;
 		m_color = color;
+		_width = width; // Width of rect in meters
+		_height = height; // Height of rec in meters
 		svgFile = new QSvgRenderer(":/svgs/img/" + svgName);
+		pixelRatio = (int)(this->size().width() / _width);
 		if (!svgFile->isValid()) 
 			return;
 		QString bgColorString = "background-color: #" + QString("%1").arg(color, 2, 16) + ";";
@@ -25,7 +28,6 @@ namespace SmartCampus { namespace Gui {
 
 	void CGenericWidget::UpdateMask(QResizeEvent * _event)
 	{
-		qDebug() << "+++CGenericWidget UpdateMask+++\n new size: " << _event->size();
 		float defaultSvgWidth = svgFile->defaultSize().width();
 		float defaultSvgHeight = svgFile->defaultSize().height();
 		// Check which state of new size is higher
@@ -39,7 +41,9 @@ namespace SmartCampus { namespace Gui {
 			ratio = _event->size().height() / defaultSvgHeight;
 		}
 		QSize pixmapSize(defaultSvgWidth * ratio - m_shadowOffset, defaultSvgHeight * ratio- m_shadowOffset);
-		qDebug() << "pixmap size: " << pixmapSize;
+		maskWidth = pixmapSize.width();
+		maskHeight = pixmapSize.height();
+		pixelRatio = maskWidth / _width;
 		maskmap = new QPixmap(pixmapSize);
 		maskmap->fill(Qt::transparent);
 		QPainter* painter = new QPainter(maskmap);
@@ -48,10 +52,7 @@ namespace SmartCampus { namespace Gui {
 	}
 
 	QSize CGenericWidget::GetSize() const { 
-		if (maskmap != nullptr) 
-			return maskmap->size(); 
-		else
-			return QSize(-1,-1);
+		return QSize(_width, _height);
 	}
 
 	float CGenericWidget::GetShadowOffset() const
@@ -63,6 +64,15 @@ namespace SmartCampus { namespace Gui {
 	{
 		UpdateMask(_event);
 		QFrame::resizeEvent(_event);
+	}
+
+	QSize CGenericWidget::maskSize() const
+	{
+		return QSize(maskWidth, maskHeight);
+	}
+	float CGenericWidget::PixelRatio() const
+	{
+		return pixelRatio;
 	}
 
 }} // SmartCampus::Gui

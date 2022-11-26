@@ -16,15 +16,6 @@ namespace SmartCampus { namespace Database {
 
 	using BaseSizePtr = std::shared_ptr<BaseSize>;
 
-	struct Coordinates {
-		Coordinates() {
-			NValue = 90.0;
-			EValue = 90.0;
-		}
-		double NValue;
-		double EValue;
-	};
-
 	class DbElectricalSensorType : BaseSize {
 		public:
 			DbElectricalSensorType();
@@ -105,20 +96,22 @@ namespace SmartCampus { namespace Database {
 	class DbBuilding : BaseSize {
 	public:
 		DbBuilding();
-		DbBuilding(uint32_t id, uint32_t buildingNumber, QString description, uint32_t countOfFloors, Coordinates coordinates);
+		DbBuilding(uint32_t id, uint32_t buildingNumber, QString & description, uint32_t countOfFloors, QSize & size, QPoint & offset, QString & svgFileName);
 		~DbBuilding();
 
 		uint32_t GetId() const;
 		uint32_t GetBuildingNumber() const;
 		QString GetDescription() const;
+		QSize GetSize() const;
 		uint32_t GetCountOfFloors() const;
-		Coordinates GetCoordinates() const;
+		QPoint GetOffset() const;
+		QString GetFileName() const;
 
 		void SetId(uint32_t id);
 		void SetBuildingNumber(uint32_t buildingNumber);
 		void SetDescription(QString description);
 		void SetCountOfFloors(uint32_t countOfFloors);
-		void SetCoordinates(Coordinates coordinates);
+		void SetSize(QSize& newSize);
 		unsigned int calculateSize() override;
 	protected:
 	private:
@@ -126,7 +119,11 @@ namespace SmartCampus { namespace Database {
 		uint32_t m_buildingNumber;
 		QString m_description;
 		uint32_t m_countOfFloors;
-		Coordinates m_coordinates;
+		uint16_t m_width;
+		uint16_t m_height;
+		uint16_t m_e_offset;
+		uint16_t m_n_offset;
+		QString m_svgFileName;
 	};
 
 	using DbBuildingPtr = std::shared_ptr<DbBuilding>;
