@@ -16,9 +16,10 @@ set(SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/CGenericWidget.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/CampusWidget.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/BuildingWidget.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/BuildingWindow.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/../resources/resources.qrc
 )
-qt5_wrap_ui(SOURCES_UI mainwindow.ui electricalsensor.ui)
+qt5_wrap_ui(SOURCES_UI mainwindow.ui electricalsensor.ui Building.ui)
 qt5_wrap_cpp(SOURCES_QT_CPP ../${HW_HEADER_DIR}/Application.h)
 add_executable(${TARGET}
 	${SOURCES}

@@ -52,16 +52,6 @@ namespace SmartCampus {	namespace Gui {
 					delete(wItem);
 				}
 				delete(m_internalLayout);
-				while ((wItem = m_headerLayout->takeAt(0)) != 0) {
-					m_headerLayout->removeWidget(wItem->widget());
-					delete(wItem);
-				}
-				if (uiLabel != nullptr)
-					delete (uiLabel);
-				if (m_hideButton != nullptr)
-					delete (m_hideButton);
-				delete(m_headerLayout);
-				delete(m_header);
 				m_arrWidgets.clear();
 			}
 			std::weak_ptr<T> AddWidget(T * ptrWidget, uint32_t id)

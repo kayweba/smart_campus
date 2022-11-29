@@ -3,18 +3,20 @@
 #include <DbValueGenerator.h>
 #include <BuildingTreeModel.h>
 #include <BuildingTreeItem.h>
+#include <BuildingWindow.h>
 
 namespace SmartCampus {
 
 	Application::Application(const int width, const int height) noexcept :
-	ui(new Ui::MainWindow()),
-	m_guiBuildings(ui->selectedRoomsView, "", false)
+	ui(new Ui::MainWindow())
 	{
 		ui->setupUi(this);
-		m_guiBuildings.setContentsMargins(QMargins(0,0,0,0));
+		this->setAttribute(Qt::WA_DeleteOnClose);
+		m_guiBuildings = new Gui::BaseContainer<Gui::GuiBuildings>(ui->selectedRoomsView, "", false);
+		m_guiBuildings->setContentsMargins(QMargins(0,0,0,0));
 		m_ptrBuildingTreeModel = Gui::BuildingTreeModelPtr(new Gui::BuildingTreeModel());
 		ui->buildingTree->setModel(m_ptrBuildingTreeModel.get());
-		ui->scrollArea->setWidget(&m_guiBuildings);
+		ui->scrollArea->setWidget(m_guiBuildings);
 		ptrBuildingTreeRoomContextMenu = new QMenu(ui->buildingTree);
 		ptrBuildingTreeFloorContextMenu = new QMenu(ui->buildingTree);
 		ptrBuildingTreeSensorContextMenu = new QMenu(ui->buildingTree);
@@ -76,11 +78,6 @@ namespace SmartCampus {
 		delete(ptrBuildingTreeRoomContextMenu);
 		delete(ptrBuildingTreeFloorContextMenu);
 		delete(ptrBuildingTreeSensorContextMenu);
-		delete(ptrTransferSensorAction);
-		delete(ptrTransferFloorAction);
-		delete(ptrTransferSensorAction);
-		delete(campusWidgetLayout);
-		delete(m_campusWidget);
 		if (m_updateThread.joinable()) {
 			m_updateThread.interrupt();
 			m_updateThread.join();
@@ -121,11 +118,25 @@ namespace SmartCampus {
 	void Application::DeleteBuilding(quint32 buildingId)
 	{
 		boost::mutex::scoped_lock lock(arrLock);
-		m_guiBuildings.DeleteWidget(buildingId);
+		m_guiBuildings->DeleteWidget(buildingId);
 	}
 
 	void Application::OnBuildingEnterButtonClicked(uint16_t id)
 	{
+		boost::mutex::scoped_lock lock(arrLock);
+		auto foundBuilding = std::find_if(m_buildings.begin(), m_buildings.end(), [id](Database::DbBuildingPtr& seek) {
+			return seek->GetId() == id;
+		});
+		if (foundBuilding != nullptr) {
+			QVector<Database::DbRoom> buildingRooms;
+			for (auto room : m_rooms) {
+				if (room->GetBuildingId() == (*foundBuilding)->GetId()) {
+					buildingRooms.push_back(*room);
+				}
+			}
+			Gui::BuildingWindow* buildingWindow = new Gui::BuildingWindow(**foundBuilding, buildingRooms, this);
+			buildingWindow->show();
+		}
 	}
 
 	void Application::OnGeneratorEmitsErrorSignal()
@@ -160,9 +171,9 @@ namespace SmartCampus {
 			uint32_t roomNumber = m_ptrBuildingTreeModel->data(selectedIndex, Qt::DisplayRole, 0).toUInt();
 			boost::mutex::scoped_lock lock(arrLock);
 			// Try to find nested building
-			auto foundBuilding = m_guiBuildings.findWidget(buildingId);
+			auto foundBuilding = m_guiBuildings->findWidget(buildingId);
 			if (foundBuilding.lock() == nullptr) {
-				foundBuilding = m_guiBuildings.AddWidget(new Gui::GuiBuildings(&m_guiBuildings, QString::fromLocal8Bit("%1").arg(buildingName)), buildingId);
+				foundBuilding = m_guiBuildings->AddWidget(new Gui::GuiBuildings(m_guiBuildings, QString::fromLocal8Bit("%1").arg(buildingName)), buildingId);
 			}
 			// Try to find nested room
 			auto foundRoom = foundBuilding.lock()->findWidget(roomId);
@@ -196,9 +207,9 @@ namespace SmartCampus {
 			size_t currentFloor = m_ptrBuildingTreeModel->data(selectedIndex, Qt::DisplayRole, 2).toUInt();
 			// Try to find nested building
 			boost::mutex::scoped_lock lock(arrLock);
-			auto foundBuilding = m_guiBuildings.findWidget(buildingId);
+			auto foundBuilding = m_guiBuildings->findWidget(buildingId);
 			if (foundBuilding.lock() == nullptr) {
-				foundBuilding = m_guiBuildings.AddWidget(new Gui::GuiBuildings(&m_guiBuildings, QString::fromLocal8Bit("%1").arg(buildingName)), buildingId);
+				foundBuilding = m_guiBuildings->AddWidget(new Gui::GuiBuildings(m_guiBuildings, QString::fromLocal8Bit("%1").arg(buildingName)), buildingId);
 			}
 			auto foundBuildingPtr = foundBuilding.lock();
 			int childCount = m_ptrBuildingTreeModel->rowCount(selectedIndex);
@@ -241,9 +252,9 @@ namespace SmartCampus {
 			uint32_t sensorId = m_ptrBuildingTreeModel->data(selectedIndex, Qt::DisplayRole, 1).toUInt();
 			// Try to find nested building
 			boost::mutex::scoped_lock lock(arrLock);
-			auto foundBuilding = m_guiBuildings.findWidget(buildingId);
+			auto foundBuilding = m_guiBuildings->findWidget(buildingId);
 			if (foundBuilding.lock() == nullptr) {
-				foundBuilding = m_guiBuildings.AddWidget(new Gui::GuiBuildings(&m_guiBuildings, QString::fromLocal8Bit("%1").arg(buildingName)), buildingId);
+				foundBuilding = m_guiBuildings->AddWidget(new Gui::GuiBuildings(m_guiBuildings, QString::fromLocal8Bit("%1").arg(buildingName)), buildingId);
 			}
 			// Try to find nested room
 			auto foundRoom = foundBuilding.lock()->findWidget(roomId);
@@ -291,11 +302,12 @@ namespace SmartCampus {
 
 	void  Application::showEvent(QShowEvent* event)
 	{
-		m_campusWidget->resize(ui->campusView->size());
+		//m_campusWidget->resize(ui->campusView->size());
 	}
 
 	void Application::closeEvent(QCloseEvent* event)
 	{
+
 	}
 
 	void Application::BuildTree()
@@ -364,8 +376,8 @@ namespace SmartCampus {
 				{
 					boost::mutex::scoped_lock lock(arrLock);
 					QVector<uint32_t> restInPeaceBuildingWidget = {};
-					for (int i = 0; i < m_guiBuildings.GetWidgetsCount(); i++) {
-						auto guiBuilding = m_guiBuildings.getWidget(i);
+					for (int i = 0; i < m_guiBuildings->GetWidgetsCount(); i++) {
+						auto guiBuilding = m_guiBuildings->getWidget(i);
 						auto guiBuildingPtr = guiBuilding.lock();
 						// Iterate rooms
 						QVector<uint32_t> restInPeaceRoomWidget = {};
@@ -413,7 +425,7 @@ namespace SmartCampus {
 							emit requestDeleteRoom(guiBuildingPtr, restInPeaceRoomWidget[it]);
 
 						if (guiBuildingPtr->GetWidgetsCount() == 0)
-							restInPeaceBuildingWidget.push_back(m_guiBuildings.getId(i));
+							restInPeaceBuildingWidget.push_back(m_guiBuildings->getId(i));
 					}
 					// Remove building widget if needed
 					for (int it = 0; it < restInPeaceBuildingWidget.size(); it++) {

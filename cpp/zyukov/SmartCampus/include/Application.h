@@ -64,7 +64,7 @@ private slots:
 		unsigned int cacheArr[3];
 		QVector< Database::DbRoomPtr > m_rooms;
 		QVector< Database::DbBuildingPtr > m_buildings;
-		Gui::BaseContainer<Gui::GuiBuildings> m_guiBuildings;
+		Gui::BaseContainer<Gui::GuiBuildings> * m_guiBuildings;
 		QMenu* ptrBuildingTreeRoomContextMenu;
 		QMenu* ptrBuildingTreeFloorContextMenu;
 		QMenu* ptrBuildingTreeSensorContextMenu;

@@ -15,8 +15,6 @@ namespace SmartCampus { namespace Gui {
 
 	CampusWidget::~CampusWidget()
 	{
-		for (auto building : buildings)
-			delete(building.get());
 	}
 
 	void CampusWidget::AddNewBuilding(uint16_t id, CGenericWidget* buildingWidget)

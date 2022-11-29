@@ -16,7 +16,6 @@ namespace SmartCampus { namespace Gui {
 		if (!svgFile->isValid()) 
 			return;
 		QString bgColorString = "background-color: #" + QString("%1").arg(color, 2, 16) + ";";
-		qDebug() << bgColorString;
 		setStyleSheet(bgColorString);
 	}
 
@@ -48,6 +47,7 @@ namespace SmartCampus { namespace Gui {
 		maskmap->fill(Qt::transparent);
 		QPainter* painter = new QPainter(maskmap);
 		svgFile->render(painter);
+		painter->end();
 		setMask(maskmap->mask());
 	}
 
